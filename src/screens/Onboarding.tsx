@@ -1,16 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   Dimensions,
+  PanResponder,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  runOnJS,
+} from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppStore } from '../state/store';
-import { Button } from '../components';
+import { Button, SafeScreen } from '../components';
 import { OnboardingIllustration } from '../components/OnboardingIllustration';
 import { FeatureItem } from '../components/FeatureItem';
 
@@ -65,12 +73,31 @@ const onboardingSteps = [
 export default function OnboardingScreen() {
   const [currentStep, setCurrentStep] = useState(0);
   const completeOnboarding = useAppStore((state) => state.completeOnboarding);
+  const opacity = useSharedValue(1);
+  const insets = useSafeAreaInsets();
+  
+  // Extra padding for Dynamic Island on iOS
+  const topPadding = Platform.OS === 'ios' ? Math.max(insets.top, 44) + 10 : insets.top;
 
   const handleNext = () => {
     if (currentStep < onboardingSteps.length - 1) {
-      setCurrentStep(currentStep + 1);
+      opacity.value = withTiming(0, { duration: 150 }, () => {
+        runOnJS(setCurrentStep)(currentStep + 1);
+        opacity.value = 0;
+        opacity.value = withTiming(1, { duration: 200 });
+      });
     } else {
       completeOnboarding();
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentStep > 0) {
+      opacity.value = withTiming(0, { duration: 150 }, () => {
+        runOnJS(setCurrentStep)(currentStep - 1);
+        opacity.value = 0;
+        opacity.value = withTiming(1, { duration: 200 });
+      });
     }
   };
 
@@ -78,29 +105,94 @@ export default function OnboardingScreen() {
     completeOnboarding();
   };
 
+  // Animated style for fade effect
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: opacity.value,
+    };
+  });
+
+  // PanResponder with currentStep dependency
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: (_, gestureState) => {
+          // Only respond to horizontal swipes
+          return Math.abs(gestureState.dx) > Math.abs(gestureState.dy) && Math.abs(gestureState.dx) > 10;
+        },
+        onPanResponderMove: (_, gestureState) => {
+          // Update opacity during swipe for visual feedback
+          const progress = Math.abs(gestureState.dx) / SCREEN_WIDTH;
+          opacity.value = Math.max(0.3, 1 - progress * 0.7);
+        },
+        onPanResponderRelease: (_, gestureState) => {
+          const { dx, vx } = gestureState;
+          const swipeThreshold = 50;
+          const velocityThreshold = 0.5;
+
+          // Swipe right (positive dx) = go to previous
+          if (dx > swipeThreshold || vx > velocityThreshold) {
+            if (currentStep > 0) {
+              // Fade out, change step, then fade in
+              opacity.value = withTiming(0, { duration: 150 }, () => {
+                runOnJS(setCurrentStep)(currentStep - 1);
+                opacity.value = 0;
+                opacity.value = withTiming(1, { duration: 200 });
+              });
+            } else {
+              // Reset if can't go back
+              opacity.value = withTiming(1, { duration: 150 });
+            }
+          }
+          // Swipe left (negative dx) = go to next
+          else if (dx < -swipeThreshold || vx < -velocityThreshold) {
+            if (currentStep < onboardingSteps.length - 1) {
+              // Fade out, change step, then fade in
+              opacity.value = withTiming(0, { duration: 150 }, () => {
+                runOnJS(setCurrentStep)(currentStep + 1);
+                opacity.value = 0;
+                opacity.value = withTiming(1, { duration: 200 });
+              });
+            } else {
+              // Complete onboarding
+              opacity.value = withTiming(0, { duration: 150 }, () => {
+                runOnJS(completeOnboarding)();
+              });
+            }
+          } else {
+            // Reset if swipe wasn't strong enough
+            opacity.value = withTiming(1, { duration: 150 });
+          }
+        },
+      }),
+    [currentStep, completeOnboarding]
+  );
+
+  // Reset animation when step changes (from button press)
+  useEffect(() => {
+    opacity.value = 1;
+  }, [currentStep]);
+
   const currentStepData = onboardingSteps[currentStep];
   const isLastStep = currentStep === onboardingSteps.length - 1;
 
-  // Onboarding uses light background, so we need dark text and dark status bar
-  const backgroundColor =
-    currentStep === 0
-      ? '#F0F4F8'
-      : currentStep === 1
-      ? '#F0F4F8'
-      : currentStep === 2
-      ? '#F0F4F8'
-      : '#E0F2FE';
+  // Gradient colors for light blue background
+  const gradientColors = ['#E8F4F8', '#D0E8F2'];
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor }]}
-      edges={['top', 'bottom']}
+    <LinearGradient
+      colors={gradientColors}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0, y: 1 }}
+      style={styles.container}
     >
+      <SafeScreen edges={['top', 'bottom']} style={styles.safeArea}>
       <StatusBar style="dark" />
       {/* Skip button */}
       {!isLastStep && (
         <TouchableOpacity
-          style={styles.skipButton}
+          style={[styles.skipButton, { top: topPadding + 10 }]}
           onPress={handleSkip}
           activeOpacity={0.7}
         >
@@ -108,74 +200,78 @@ export default function OnboardingScreen() {
         </TouchableOpacity>
       )}
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+      <Animated.View 
+        style={[
+          styles.contentWrapper, 
+          animatedStyle, 
+          { paddingTop: topPadding }
+        ]} 
+        {...panResponder.panHandlers}
       >
-        {/* Illustration */}
-        <View style={styles.illustrationContainer}>
-          {currentStep === 0 && (
-            <View style={styles.illustrationWrapper}>
-              <OnboardingIllustration step={0} width={SCREEN_WIDTH - 80} height={300} />
-            </View>
-          )}
-          {currentStep === 1 && (
-            <View style={styles.illustrationWrapper}>
-              <OnboardingIllustration step={1} width={SCREEN_WIDTH - 80} height={300} />
-            </View>
-          )}
-          {currentStep === 2 && (
-            <View style={styles.illustrationWrapper}>
-              <OnboardingIllustration step={2} width={SCREEN_WIDTH} height={300} />
-            </View>
-          )}
-          {currentStep === 3 && (
-            <View style={styles.waveCircleContainer}>
-              <OnboardingIllustration step={3} width={200} height={200} />
-            </View>
-          )}
-        </View>
+          {/* Illustration */}
+          <View style={styles.illustrationContainer}>
+            {currentStep === 0 && (
+              <View style={styles.illustrationWrapper}>
+                <OnboardingIllustration step={0} width={SCREEN_WIDTH - 80} height={300} />
+              </View>
+            )}
+            {currentStep === 1 && (
+              <View style={styles.illustrationWrapper}>
+                <OnboardingIllustration step={1} width={SCREEN_WIDTH - 80} height={300} />
+              </View>
+            )}
+            {currentStep === 2 && (
+              <View style={styles.illustrationWrapper}>
+                <OnboardingIllustration step={2} width={SCREEN_WIDTH} height={300} />
+              </View>
+            )}
+            {currentStep === 3 && (
+              <View style={styles.waveCircleContainer}>
+                <OnboardingIllustration step={3} width={200} height={200} />
+              </View>
+            )}
+          </View>
 
-        {/* Content */}
-        <View style={styles.content}>
-          <Text style={styles.title}>
-            {currentStepData.title}
-          </Text>
-          <Text style={styles.description}>
-            {currentStepData.description}
-          </Text>
+          {/* Content */}
+          <View style={styles.content}>
+            <Text style={styles.title}>
+              {currentStepData.title}
+            </Text>
+            <Text style={styles.description}>
+              {currentStepData.description}
+            </Text>
 
-          {/* Features list for last step */}
-          {isLastStep && currentStepData.features && (
-            <View style={styles.featuresContainer}>
-              {currentStepData.features.map((feature, index) => (
-                <FeatureItem
-                  key={index}
-                  icon={feature.icon}
-                  title={feature.title}
-                  description={feature.description}
-                />
-              ))}
-            </View>
-          )}
-        </View>
+            {/* Features list for last step */}
+            {isLastStep && currentStepData.features && (
+              <View style={styles.featuresContainer}>
+                {currentStepData.features.map((feature, index) => (
+                  <FeatureItem
+                    key={index}
+                    icon={feature.icon}
+                    title={feature.title}
+                    description={feature.description}
+                  />
+                ))}
+              </View>
+            )}
+          </View>
 
-        {/* Pagination dots */}
-        <View style={styles.pagination}>
-          {onboardingSteps.map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.dot,
-                {
-                  backgroundColor: index === currentStep ? '#1F2937' : '#D1D5DB',
-                  opacity: index === currentStep ? 1 : 0.4,
-                },
-              ]}
-            />
-          ))}
-        </View>
-      </ScrollView>
+          {/* Pagination dots */}
+          <View style={styles.pagination}>
+            {onboardingSteps.map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.dot,
+                  {
+                    backgroundColor: index === currentStep ? '#1F2937' : '#D1D5DB',
+                    opacity: index === currentStep ? 1 : 0.4,
+                  },
+                ]}
+              />
+            ))}
+          </View>
+        </Animated.View>
 
       {/* Button */}
       <View style={styles.buttonContainer}>
@@ -185,7 +281,8 @@ export default function OnboardingScreen() {
           fullWidth
         />
       </View>
-    </SafeAreaView>
+      </SafeScreen>
+    </LinearGradient>
   );
 }
 
@@ -193,9 +290,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  safeArea: {
+    flex: 1,
+  },
   skipButton: {
     position: 'absolute',
-    top: 50,
     right: 20,
     zIndex: 10,
     padding: 8,
@@ -205,10 +304,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#6B7280',
   },
-  scrollContent: {
-    flexGrow: 1,
-    paddingTop: 60,
+  contentWrapper: {
+    flex: 1,
     paddingBottom: 20,
+    justifyContent: 'space-between',
   },
   illustrationContainer: {
     alignItems: 'center',

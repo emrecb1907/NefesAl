@@ -1,0 +1,241 @@
+{
+  "common": {
+    "start": "Başla",
+    "pause": "Duraklat",
+    "resume": "Devam Et",
+    "done": "Tamam",
+    "cancel": "İptal",
+    "save": "Kaydet",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "close": "Kapat",
+    "back": "Geri",
+    "next": "İleri",
+    "skip": "Atla",
+    "continue": "Devam Et",
+    "upgrade": "Yükselt",
+    "premium": "Premium"
+  },
+  "onboarding": {
+    "step1": {
+      "title": "Nefes Al, Rahatla",
+      "description": "Günlük stresinizi azaltmak ve zihninizi sakinleştirmek için rehberli nefes egzersizleriyle başlayın."
+    },
+    "step2": {
+      "title": "Kişiselleştirilmiş Teknikler",
+      "description": "Farklı nefes tekniklerini keşfedin ve sizin için en uygun olanı bulun."
+    },
+    "step3": {
+      "title": "İlerlemenizi Takip Edin",
+      "description": "Günlük serilerinizi ve ilerlemenizi takip ederek motivasyonunuzu koruyun."
+    },
+    "step4": {
+      "title": "Başlamaya Hazırsınız",
+      "description": "Uygulamada neler bulacağınız:",
+      "features": {
+        "breathing": {
+          "title": "Rehberli Nefes Teknikleri",
+          "description": "Rahatlama, odaklanma ve uyku ritimleri dahil"
+        },
+        "sounds": {
+          "title": "Ambient Sesler",
+          "description": "Rüzgar, su ve sakinleştirici tonlar"
+        },
+        "tracking": {
+          "title": "Günlük İlerleme Takibi",
+          "description": "Sakinlik serinizi takip edin"
+        },
+        "summaries": {
+          "title": "Seans Özetleri",
+          "description": "Her pratikten sonra içgörüler"
+        }
+      }
+    },
+    "nameModal": {
+      "title": "Adınız nedir?",
+      "placeholder": "Adınızı girin",
+      "continue": "Devam Et"
+    }
+  },
+  "tabs": {
+    "home": "Ana Sayfa",
+    "sessions": "Teknikler",
+    "stats": "İstatistikler",
+    "profile": "Profil"
+  },
+  "home": {
+    "title": "Nefes Al & Rahatla",
+    "welcome": "Hoş Geldin",
+    "streak": "günlük seri",
+    "todaysPractice": "Bugünün Pratiği",
+    "startPractice": "Pratik Başlat",
+    "startingPractice": "Pratik başlatılıyor...",
+    "techniques": "Teknikler",
+    "sounds": "Sesler",
+    "duration": "Süre",
+    "rhythm": "ritim",
+    "minutes": "dakika",
+    "durationModal": {
+      "title": "Pratik Süresini Seçin"
+    }
+  },
+  "sessions": {
+    "title": "Nefes Teknikleri",
+    "subtitle": "Başlamak için bir teknik seçin",
+    "locked": "Kilitli",
+    "patterns": {
+      "478": {
+        "name": "4-7-8 Nefes",
+        "description": "Derin rahatlama · 4-7-8 ritmi"
+      },
+      "box": {
+        "name": "Kutu Nefesi",
+        "description": "Odaklanma ve denge · 4-4-4-4"
+      },
+      "relax": {
+        "name": "Rahatlama Nefesi",
+        "description": "Sakinleştirici ritim · 4-4-6"
+      },
+      "calm": {
+        "name": "Sakin Nefes",
+        "description": "Yumuşak ritim · 3-3-3"
+      },
+      "focus": {
+        "name": "Odaklanma Nefesi",
+        "description": "Netlik ve dikkat · 5-5-5"
+      },
+      "sleep": {
+        "name": "Uyku Nefesi",
+        "description": "Yavaş sakinleştirici · 4-7-8 (yavaş mod)"
+      },
+      "sleep_reverse": {
+        "name": "4-7-8 Ters",
+        "description": "Uykuya geçiş · 5-7-8 ritmi"
+      },
+      "coherence": {
+        "name": "Koherence Nefesi",
+        "description": "HRV artırır · 6-6 ritmi"
+      },
+      "double_exhale": {
+        "name": "2 Katı Nefes",
+        "description": "Kaygı giderici · 4-8 ritmi"
+      },
+      "rasayana": {
+        "name": "Rasayana Nefesi",
+        "description": "Zihinsel berraklık · 4-8-4 ritmi"
+      },
+      "relax_3stage": {
+        "name": "3 Aşamalı Rahatlama",
+        "description": "Gerginlik giderici · 2-4 ritmi"
+      },
+      "bhramari": {
+        "name": "Bhramari",
+        "description": "Arı vızıltısı · 4-6 ritmi"
+      },
+      "rectangle": {
+        "name": "Dikdörtgen Nefes",
+        "description": "Gelişmiş kutu · 4-2-6-2 ritmi"
+      },
+      "tesla": {
+        "name": "3-6-9 Nefesi",
+        "description": "Derin gevşeme · 3-6-9 ritmi"
+      },
+      "meditation": {
+        "name": "Meditasyon Nefesi",
+        "description": "Odak artırıcı · 4-2-4-2 ritmi"
+      }
+    }
+  },
+  "practice": {
+    "title": "Nefes Pratiği",
+    "breathPractice": "Nefes Pratiği",
+    "start": "Başla",
+    "pause": "Duraklat",
+    "resume": "Devam Et",
+    "inhale": "Nefes Al",
+    "exhale": "Nefes Ver",
+    "hold": "Tut",
+    "rest": "Sessizce Dinlen",
+    "ready": "Hazır",
+    "complete": {
+      "title": "Tebrikler!",
+      "subtitle": "Pratik tamamlandı",
+      "totalTime": "Toplam Süre",
+      "cycles": "Döngüler",
+      "inhale": "Nefes Alma",
+      "hold": "Tutma",
+      "exhale": "Nefes Verme"
+    }
+  },
+  "sounds": {
+    "title": "Ambient Sesler",
+    "subtitle": "Rahatlama için arka plan sesleri",
+    "premium": "Premium",
+    "locked": "Kilitli"
+  },
+  "stats": {
+    "title": "İstatistikler",
+    "subtitle": "İlerlemenizi görüntüleyin",
+    "totalSessions": "Toplam Seans",
+    "totalMinutes": "Toplam Dakika",
+    "currentStreak": "Mevcut Seri",
+    "bestStreak": "En İyi Seri",
+    "weeklyProgress": "Haftalık İlerleme",
+    "sessions": "Seanslar",
+    "minutes": "Dakika",
+    "day": "gün",
+    "days": "gün",
+    "thisWeek": "Bu Hafta",
+    "minutesPracticed": "Son 7 günde pratik yapılan dakikalar"
+  },
+  "profile": {
+    "title": "Profiliniz",
+    "subtitle": "Kişisel sakinleştirici içgörüler",
+    "sessions": "Seanslar",
+    "minutes": "Dakika",
+    "bestStreak": "En İyi Seri",
+    "preferences": "Tercihler",
+    "theme": "Tema",
+    "themeLight": "Açık",
+    "themeDark": "Koyu",
+    "themeSystem": "Sistem",
+    "language": "Dil",
+    "languageTurkish": "Türkçe",
+    "languageEnglish": "İngilizce",
+    "defaultAmbiance": "Varsayılan Ambians",
+    "dailyReminder": "Günlük Hatırlatıcı",
+    "premiumStatus": "Premium Durumu",
+    "premiumActive": "Premium Aktif",
+    "premiumNotActive": "Premium aktif değil",
+    "premiumDescription": "Daha derin içgörüler için tam erişimin kilidini açın.",
+    "appVersion": "Uygulama Sürümü",
+    "privacyPolicy": "Gizlilik Politikası",
+    "termsOfUse": "Kullanım Koşulları",
+    "imagePermissionTitle": "İzin Gerekli",
+    "imagePermissionMessage": "Profil fotoğrafı ayarlamak için fotoğraflarınıza erişim izni gerekiyor.",
+    "imageErrorTitle": "Hata",
+    "imageErrorMessage": "Fotoğraf seçilemedi. Lütfen tekrar deneyin."
+  },
+  "premium": {
+    "title": "Premium'a Yükselt",
+    "subtitle": "Tüm özelliklere erişin",
+    "features": {
+      "unlimited": "Sınırsız nefes teknikleri",
+      "sounds": "Tüm ambient sesler",
+      "stats": "Detaylı istatistikler",
+      "reminders": "Özelleştirilebilir hatırlatıcılar",
+      "export": "Verilerinizi dışa aktarın"
+    },
+    "monthly": "Aylık",
+    "yearly": "Yıllık",
+    "bestValue": "En İyi Değer",
+    "perMonth": "ay başına",
+    "perYear": "yıl başına",
+    "restore": "Satın Alımları Geri Yükle",
+    "terms": "Kullanım Koşulları ve Gizlilik Politikası"
+  },
+  "settings": {
+    "title": "Ayarlar"
+  }
+}
+

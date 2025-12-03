@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { useTheme } from '../styles/colors';
+import { useTranslation } from '../hooks/useTranslation';
 import { Card } from './Card';
 import Svg, { Rect, LinearGradient, Defs, Stop } from 'react-native-svg';
 
@@ -16,6 +17,7 @@ interface WeeklyChartProps {
 
 export const WeeklyChart: React.FC<WeeklyChartProps> = ({ data }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const maxValue = Math.max(...data, 1); // Avoid division by zero
 
   const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
@@ -27,11 +29,11 @@ export const WeeklyChart: React.FC<WeeklyChartProps> = ({ data }) => {
   return (
     <Card style={styles.card} padding={20}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: theme.colors.text }]}>This Week</Text>
+        <Text style={[styles.title, { color: theme.colors.text }]}>{t('stats.thisWeek')}</Text>
         <Text
           style={[styles.subtitle, { color: theme.colors.textSecondary }]}
         >
-          Minutes practiced in the last 7 days
+          {t('stats.minutesPracticed')}
         </Text>
       </View>
 

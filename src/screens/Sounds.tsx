@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { CompositeNavigationProp } from '@react-navigation/native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme } from '../styles/colors';
 import { useAppStore } from '../state/store';
-import { SoundCard } from '../components/SoundCard';
+import { SoundCard, SafeScreen } from '../components';
 import { ambiances } from '../constants/ambiances';
 import { MainTabParamList, RootStackParamList } from '../navigation/types';
-import { Audio } from 'expo-av';
+import { AudioPlayer } from 'expo-audio';
 
 type SoundsScreenNavigationProp = CompositeNavigationProp<
   BottomTabNavigationProp<MainTabParamList, 'Profile'>,
@@ -25,15 +24,16 @@ export default function SoundsScreen() {
   const setDefaultAmbiance = useAppStore((state) => state.setDefaultAmbiance);
 
   const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [player, setPlayer] = useState<AudioPlayer | null>(null);
 
   useEffect(() => {
     return () => {
-      if (sound) {
-        sound.unloadAsync();
+      if (player) {
+        player.pause();
+        player.remove();
       }
     };
-  }, [sound]);
+  }, [player]);
 
   const handleSoundPress = async (ambianceId: string, isLocked: boolean) => {
     if (isLocked) {
@@ -45,31 +45,34 @@ export default function SoundsScreen() {
       return;
     }
 
-    // Stop current sound if playing
-    if (sound) {
-      await sound.stopAsync();
-      await sound.unloadAsync();
-      setSound(null);
-    }
-
     // If clicking the same sound, stop it
     if (currentlyPlaying === ambianceId) {
+      if (player) {
+        player.pause();
+      }
       setCurrentlyPlaying(null);
       return;
+    }
+
+    // Stop current sound if playing
+    if (player) {
+      player.pause();
+      player.remove();
+      setPlayer(null);
     }
 
     // Play new sound
     try {
       // In a real app, you would load the actual sound file
       // For now, we'll simulate it
-      const { sound: newSound } = await Audio.Sound.createAsync(
-        // Using a silent sound or placeholder
-        // In production, use: require('../assets/sounds/rain.mp3')
-        { uri: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
-        { isLooping: true, volume: 0.5, shouldPlay: true }
-      );
-
-      setSound(newSound);
+      const soundUri = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
+      const newPlayer = new AudioPlayer(soundUri, {
+        isLooping: true,
+        volume: 0.5,
+      });
+      
+      await newPlayer.play();
+      setPlayer(newPlayer);
       setCurrentlyPlaying(ambianceId);
       setDefaultAmbiance(ambianceId);
     } catch (error) {
@@ -81,10 +84,7 @@ export default function SoundsScreen() {
   };
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
-      edges={['top']}
-    >
+    <SafeScreen edges={['top']} backgroundColor={theme.colors.background}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -122,7 +122,7 @@ export default function SoundsScreen() {
           })}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </SafeScreen>
   );
 }
 

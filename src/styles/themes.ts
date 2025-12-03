@@ -3,7 +3,7 @@ export const lightTheme = {
     primary: '#6366f1',
     primaryDark: '#4f46e5',
     secondary: '#8b5cf6',
-    background: '#ffffff',
+    background: '#E8F2FF',
     surface: '#f9fafb',
     card: '#ffffff',
     text: '#111827',
@@ -17,7 +17,7 @@ export const lightTheme = {
   gradients: {
     primary: ['#6366f1', '#8b5cf6'],
     secondary: ['#8b5cf6', '#ec4899'],
-    background: ['#ffffff', '#f9fafb'],
+    background: ['#CAF2FC', '#D5E3F0', '#E8F4F8'], // Açık tema gradient: 129deg
   },
 };
 
@@ -40,7 +40,7 @@ export const darkTheme = {
   gradients: {
     primary: ['#6366f1', '#8b5cf6'],
     secondary: ['#8b5cf6', '#ec4899'],
-    background: ['#111827', '#1f2937'],
+    background: ['#000000', '#363636', '#6E6E6E', '#8F8F8F', '#ADADAD'], // Koyu tema gradient: 145deg
   },
 };
 

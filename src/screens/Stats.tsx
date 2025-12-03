@@ -1,9 +1,8 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../styles/colors';
 import { useAppStore } from '../state/store';
-import { StatCard, WeeklyChart } from '../components';
+import { StatCard, WeeklyChart, SafeScreen } from '../components';
 import { Button } from '../components';
 import { formatDuration } from '../utils/formatTime';
 import Svg, { Circle, Path, Line } from 'react-native-svg';
@@ -78,10 +77,7 @@ export default function StatsScreen() {
   };
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
-      edges={['top']}
-    >
+    <SafeScreen edges={['top']} backgroundColor={theme.colors.background}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -134,7 +130,7 @@ export default function StatsScreen() {
           />
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </SafeScreen>
   );
 }
 

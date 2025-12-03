@@ -1,19 +1,20 @@
 import { useEffect, useState } from 'react';
-import { Audio } from 'expo-av';
+import { AudioPlayer } from 'expo-audio';
 import { useAppStore } from '../state/store';
 
 export const useAmbientSound = (ambianceId: string) => {
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [player, setPlayer] = useState<AudioPlayer | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const defaultAmbiance = useAppStore((state) => state.defaultAmbiance);
 
   useEffect(() => {
     return () => {
-      if (sound) {
-        sound.unloadAsync();
+      if (player) {
+        player.pause();
+        player.remove();
       }
     };
-  }, [sound]);
+  }, [player]);
 
   const loadSound = async (soundUri?: string) => {
     if (!soundUri) {
@@ -23,33 +24,39 @@ export const useAmbientSound = (ambianceId: string) => {
     }
 
     try {
-      const { sound: newSound } = await Audio.Sound.createAsync(
-        { uri: soundUri },
-        { isLooping: true, volume: 0.5 }
-      );
-      setSound(newSound);
+      // Stop existing player if any
+      if (player) {
+        player.pause();
+        player.remove();
+      }
+
+      const newPlayer = new AudioPlayer(soundUri, {
+        isLooping: true,
+        volume: 0.5,
+      });
+      setPlayer(newPlayer);
     } catch (error) {
       console.error('Error loading sound:', error);
     }
   };
 
   const play = async () => {
-    if (sound) {
-      await sound.playAsync();
+    if (player) {
+      await player.play();
       setIsPlaying(true);
     }
   };
 
   const pause = async () => {
-    if (sound) {
-      await sound.pauseAsync();
+    if (player) {
+      player.pause();
       setIsPlaying(false);
     }
   };
 
   const stop = async () => {
-    if (sound) {
-      await sound.stopAsync();
+    if (player) {
+      player.pause();
       setIsPlaying(false);
     }
   };

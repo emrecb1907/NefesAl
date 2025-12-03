@@ -7,12 +7,11 @@ import {
   TouchableOpacity,
   Dimensions,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../styles/colors';
 import { useAppStore } from '../state/store';
-import { PremiumFeatureCard } from '../components/PremiumFeatureCard';
+import { PremiumFeatureCard, SafeScreen } from '../components';
 import { hapticFeedback } from '../utils/haptics';
 import Svg, { Circle } from 'react-native-svg';
 
@@ -44,10 +43,7 @@ export default function PremiumScreen() {
   };
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
-      edges={['top', 'bottom']}
-    >
+    <SafeScreen edges={['top', 'bottom']} backgroundColor={theme.colors.background}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -157,7 +153,7 @@ export default function PremiumScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </SafeScreen>
   );
 }
 
@@ -202,7 +198,7 @@ const styles = StyleSheet.create({
   pricingButton: {
     marginHorizontal: 20,
     marginBottom: 16,
-    borderRadius: 16,
+    borderRadius: 28,
     overflow: 'hidden',
   },
   pricingGradient: {
@@ -242,7 +238,7 @@ const styles = StyleSheet.create({
   upgradeButton: {
     marginHorizontal: 20,
     marginBottom: 24,
-    borderRadius: 16,
+    borderRadius: 28,
     overflow: 'hidden',
   },
   upgradeGradient: {

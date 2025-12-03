@@ -77,7 +77,7 @@ export const Button: React.FC<ButtonProps> = ({
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: 12,
+    borderRadius: 28,
     overflow: 'hidden',
   },
   gradient: {
@@ -93,6 +93,7 @@ const styles = StyleSheet.create({
   },
   outlineButton: {
     borderWidth: 2,
+    borderRadius: 28,
     paddingVertical: 12,
     paddingHorizontal: 24,
     backgroundColor: 'transparent',

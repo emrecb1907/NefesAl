@@ -2,7 +2,8 @@ export interface Ambiance {
   id: string;
   name: string;
   description: string;
-  soundFile?: string;
+  soundFile?: number; // require() returns a number (asset ID)
+  imageFile?: number; // require() returns a number (asset ID)
   color: string;
   isPremium?: boolean;
   icon: 'rain' | 'forest' | 'ocean' | 'cosmic' | 'zen' | 'fire';
@@ -13,6 +14,8 @@ export const ambiances: Ambiance[] = [
     id: 'rain',
     name: 'Gentle Rain',
     description: 'Soothing droplets for calm',
+    soundFile: require('../assets/atmospherSounds/rainandthunder.wav'),
+    imageFile: require('../assets/atmospherImages/rainandthunder.jpg'),
     color: '#818cf8',
     isPremium: false,
     icon: 'rain',

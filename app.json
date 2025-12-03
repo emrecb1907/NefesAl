@@ -2,6 +2,7 @@
   "expo": {
     "name": "NefesAl",
     "slug": "nefesal",
+    "scheme": "nefesal",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
@@ -26,14 +27,8 @@
           "color": "#ffffff"
         }
       ],
-      [
-        "expo-av",
-        {
-          "microphonePermission": false
-        }
-      ]
+      "expo-audio"
     ],
     "sdkVersion": "54.0.0"
   }
 }
-

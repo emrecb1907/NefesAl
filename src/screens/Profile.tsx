@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { CompositeNavigationProp } from '@react-navigation/native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
@@ -14,7 +13,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../styles/colors';
 import { useAppStore } from '../state/store';
-import { Card } from '../components';
+import { Card, SafeScreen } from '../components';
 import { SettingsRow } from '../components/SettingsRow';
 import { ToggleSwitch } from '../components/ToggleSwitch';
 import { Button } from '../components';
@@ -117,10 +116,7 @@ export default function ProfileScreen() {
   };
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
-      edges={['top', 'bottom']}
-    >
+    <SafeScreen edges={['top', 'bottom']} backgroundColor={theme.colors.background}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -264,7 +260,7 @@ export default function ProfileScreen() {
           <Button title="Done" onPress={handleDone} fullWidth />
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </SafeScreen>
   );
 }
 

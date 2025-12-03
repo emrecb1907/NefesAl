@@ -85,3 +85,5 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+DEEP_ANALYSIS.md
+DUPLICATE_ANALYSIS.md

@@ -8,12 +8,13 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { useTheme } from '../styles/colors';
+import { useTranslation } from '../hooks/useTranslation';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CIRCLE_SIZE = SCREEN_WIDTH * 0.7;
 
 interface BreathingCircleProps {
-  phase: 'inhale' | 'hold' | 'exhale' | 'holdAfterExhale';
+  phase: 'inhale' | 'hold' | 'exhale' | 'holdAfterExhale' | 'rest';
   isActive: boolean;
 }
 
@@ -22,11 +23,12 @@ export const BreathingCircle: React.FC<BreathingCircleProps> = ({
   isActive,
 }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const scale = useSharedValue(1);
   const opacity = useSharedValue(0.3);
 
   useEffect(() => {
-    if (!isActive) {
+    if (!isActive || phase === 'rest') {
       scale.value = 1;
       opacity.value = 0.3;
       return;
@@ -59,15 +61,17 @@ export const BreathingCircle: React.FC<BreathingCircleProps> = ({
   const getPhaseText = () => {
     switch (phase) {
       case 'inhale':
-        return 'Inhale';
+        return t('practice.inhale');
       case 'hold':
-        return 'Hold';
+        return t('practice.hold');
       case 'exhale':
-        return 'Exhale';
+        return t('practice.exhale');
       case 'holdAfterExhale':
-        return 'Hold';
+        return t('practice.hold');
+      case 'rest':
+        return t('practice.rest');
       default:
-        return 'Ready';
+        return t('practice.ready');
     }
   };
 

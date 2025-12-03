@@ -13,6 +13,7 @@ export interface AppState {
 
   // Stats
   streak: number;
+  lastStreakDate: string | null; // YYYY-MM-DD formatında son streak tarihi
   totalSessions: number;
   totalMinutes: number;
   incrementStreak: () => void;
@@ -26,6 +27,24 @@ export interface AppState {
   setTheme: (theme: 'light' | 'dark' | 'system') => void;
   dailyReminder: boolean;
   setDailyReminder: (enabled: boolean) => void;
+  language: 'tr' | 'en';
+  setLanguage: (language: 'tr' | 'en') => void;
+  
+  // Selected Pattern
+  selectedPatternId: string | null;
+  setSelectedPattern: (patternId: string) => void;
+  
+  // User Name
+  userName: string | null;
+  setUserName: (name: string) => void;
+  
+  // Profile Image
+  profileImageUri: string | null;
+  setProfileImageUri: (uri: string | null) => void;
+  
+  // Practice Duration (in minutes)
+  practiceDuration: number;
+  setPracticeDuration: (duration: number) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -41,10 +60,24 @@ export const useAppStore = create<AppState>()(
 
       // Stats
       streak: 0,
+      lastStreakDate: null,
       totalSessions: 0,
       totalMinutes: 0,
-      incrementStreak: () => set((state) => ({ streak: state.streak + 1 })),
-      resetStreak: () => set({ streak: 0 }),
+      incrementStreak: () => {
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD formatında bugünün tarihi
+        set((state) => {
+          // Eğer bugün streak artırılmamışsa artır
+          if (state.lastStreakDate !== today) {
+            return {
+              streak: state.streak + 1,
+              lastStreakDate: today,
+            };
+          }
+          // Bugün zaten artırılmışsa hiçbir şey yapma
+          return state;
+        });
+      },
+      resetStreak: () => set({ streak: 0, lastStreakDate: null }),
       addSession: (minutes) =>
         set((state) => ({
           totalSessions: state.totalSessions + 1,
@@ -58,6 +91,24 @@ export const useAppStore = create<AppState>()(
       setTheme: (theme) => set({ selectedTheme: theme }),
       dailyReminder: true,
       setDailyReminder: (enabled) => set({ dailyReminder: enabled }),
+      language: 'tr',
+      setLanguage: (language) => set({ language }),
+      
+      // Selected Pattern
+      selectedPatternId: null,
+      setSelectedPattern: (patternId) => set({ selectedPatternId: patternId }),
+      
+      // User Name
+      userName: null,
+      setUserName: (name) => set({ userName: name }),
+      
+      // Profile Image
+      profileImageUri: null,
+      setProfileImageUri: (uri) => set({ profileImageUri: uri }),
+      
+      // Practice Duration (default 5 minutes)
+      practiceDuration: 5,
+      setPracticeDuration: (duration) => set({ practiceDuration: duration }),
     }),
     {
       name: 'nefesal-storage',

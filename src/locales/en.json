@@ -1,0 +1,241 @@
+{
+  "common": {
+    "start": "Start",
+    "pause": "Pause",
+    "resume": "Resume",
+    "done": "Done",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "skip": "Skip",
+    "continue": "Continue",
+    "upgrade": "Upgrade",
+    "premium": "Premium"
+  },
+  "onboarding": {
+    "step1": {
+      "title": "Breathe & Relax",
+      "description": "Start with guided breathing exercises to reduce daily stress and calm your mind."
+    },
+    "step2": {
+      "title": "Personalized Techniques",
+      "description": "Discover different breathing techniques and find the one that works best for you."
+    },
+    "step3": {
+      "title": "Track Your Progress",
+      "description": "Stay motivated by tracking your daily streaks and progress."
+    },
+    "step4": {
+      "title": "You're Ready to Begin",
+      "description": "Here's what you'll find inside the app:",
+      "features": {
+        "breathing": {
+          "title": "Guided Breathing Techniques",
+          "description": "Relax, focus, and sleep rhythms included"
+        },
+        "sounds": {
+          "title": "Ambient Sounds",
+          "description": "Wind, water, and calming tones"
+        },
+        "tracking": {
+          "title": "Daily Progress Tracking",
+          "description": "Keep track of your calm streak"
+        },
+        "summaries": {
+          "title": "Session Summaries",
+          "description": "Insights after every practice"
+        }
+      }
+    },
+    "nameModal": {
+      "title": "What's your name?",
+      "placeholder": "Enter your name",
+      "continue": "Continue"
+    }
+  },
+  "tabs": {
+    "home": "Home",
+    "sessions": "Sessions",
+    "stats": "Stats",
+    "profile": "Profile"
+  },
+  "home": {
+    "title": "Breathe & Relax",
+    "welcome": "Welcome",
+    "streak": "day streak",
+    "todaysPractice": "Today's Practice",
+    "startPractice": "Start Practice",
+    "startingPractice": "Starting practice...",
+    "techniques": "Techniques",
+    "sounds": "Sounds",
+    "duration": "Duration",
+    "rhythm": "rhythm",
+    "minutes": "minutes",
+    "durationModal": {
+      "title": "Select Practice Duration"
+    }
+  },
+  "sessions": {
+    "title": "Breathing Techniques",
+    "subtitle": "Choose a technique to begin",
+    "locked": "Locked",
+    "patterns": {
+      "478": {
+        "name": "4-7-8 Breathing",
+        "description": "Deep relaxation · 4-7-8 rhythm"
+      },
+      "box": {
+        "name": "Box Breathing",
+        "description": "Focus & balance · 4-4-4-4"
+      },
+      "relax": {
+        "name": "Relax Breathing",
+        "description": "Calming pattern · 4-4-6"
+      },
+      "calm": {
+        "name": "Calm Breathing",
+        "description": "Gentle rhythm · 3-3-3"
+      },
+      "focus": {
+        "name": "Focus Breathing",
+        "description": "Clarity & attention · 5-5-5"
+      },
+      "sleep": {
+        "name": "Sleep Breathing",
+        "description": "Slow soothing · 4-7-8 (slow mode)"
+      },
+      "sleep_reverse": {
+        "name": "4-7-8 Reverse",
+        "description": "Sleep transition · 5-7-8 rhythm"
+      },
+      "coherence": {
+        "name": "Coherence Breathing",
+        "description": "HRV boost · 6-6 rhythm"
+      },
+      "double_exhale": {
+        "name": "Double Length Exhale",
+        "description": "Anxiety relief · 4-8 rhythm"
+      },
+      "rasayana": {
+        "name": "Rasayana Breathing",
+        "description": "Mental clarity · 4-8-4 rhythm"
+      },
+      "relax_3stage": {
+        "name": "3-Stage Relax",
+        "description": "Tension release · 2-4 rhythm"
+      },
+      "bhramari": {
+        "name": "Bhramari",
+        "description": "Bee breath · 4-6 rhythm"
+      },
+      "rectangle": {
+        "name": "Rectangle Breathing",
+        "description": "Enhanced box · 4-2-6-2 rhythm"
+      },
+      "tesla": {
+        "name": "3-6-9 Breathing",
+        "description": "Deep relaxation · 3-6-9 rhythm"
+      },
+      "meditation": {
+        "name": "Meditation Breath",
+        "description": "Focus enhancement · 4-2-4-2 rhythm"
+      }
+    }
+  },
+  "practice": {
+    "title": "Breath Practice",
+    "breathPractice": "Breath Practice",
+    "start": "Start",
+    "pause": "Pause",
+    "resume": "Resume",
+    "inhale": "Inhale",
+    "exhale": "Exhale",
+    "hold": "Hold",
+    "rest": "Rest Quietly",
+    "ready": "Ready",
+    "complete": {
+      "title": "Congratulations!",
+      "subtitle": "Practice completed",
+      "totalTime": "Total Time",
+      "cycles": "Cycles",
+      "inhale": "Inhale",
+      "hold": "Hold",
+      "exhale": "Exhale"
+    }
+  },
+  "sounds": {
+    "title": "Ambient Sounds",
+    "subtitle": "Background sounds for relaxation",
+    "premium": "Premium",
+    "locked": "Locked"
+  },
+  "stats": {
+    "title": "Statistics",
+    "subtitle": "View your progress",
+    "totalSessions": "Total Sessions",
+    "totalMinutes": "Total Minutes",
+    "currentStreak": "Current Streak",
+    "bestStreak": "Best Streak",
+    "weeklyProgress": "Weekly Progress",
+    "sessions": "Sessions",
+    "minutes": "Minutes",
+    "day": "day",
+    "days": "days",
+    "thisWeek": "This Week",
+    "minutesPracticed": "Minutes practiced in the last 7 days"
+  },
+  "profile": {
+    "title": "Your Profile",
+    "subtitle": "Personal calming insights",
+    "sessions": "Sessions",
+    "minutes": "Minutes",
+    "bestStreak": "Best Streak",
+    "preferences": "Preferences",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "language": "Language",
+    "languageTurkish": "Turkish",
+    "languageEnglish": "English",
+    "defaultAmbiance": "Default Ambiance",
+    "dailyReminder": "Daily Reminder",
+    "premiumStatus": "Premium Status",
+    "premiumActive": "Premium Active",
+    "premiumNotActive": "Premium not active",
+    "premiumDescription": "Unlock full access for deeper insights.",
+    "appVersion": "App Version",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfUse": "Terms of Use",
+    "imagePermissionTitle": "Permission Required",
+    "imagePermissionMessage": "We need permission to access your photos to set a profile picture.",
+    "imageErrorTitle": "Error",
+    "imageErrorMessage": "Failed to pick image. Please try again."
+  },
+  "premium": {
+    "title": "Upgrade to Premium",
+    "subtitle": "Access all features",
+    "features": {
+      "unlimited": "Unlimited breathing techniques",
+      "sounds": "All ambient sounds",
+      "stats": "Detailed statistics",
+      "reminders": "Customizable reminders",
+      "export": "Export your data"
+    },
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "bestValue": "Best Value",
+    "perMonth": "per month",
+    "perYear": "per year",
+    "restore": "Restore Purchases",
+    "terms": "Terms of Use and Privacy Policy"
+  },
+  "settings": {
+    "title": "Settings"
+  }
+}
+

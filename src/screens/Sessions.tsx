@@ -1,13 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { CompositeNavigationProp } from '@react-navigation/native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme } from '../styles/colors';
 import { useAppStore } from '../state/store';
-import { TechniqueCard } from '../components/TechniqueCard';
+import { TechniqueCard, SafeScreen } from '../components';
 import { breathingPatterns } from '../constants/breathingPatterns';
 import { RootStackParamList, MainTabParamList } from '../navigation/types';
 
@@ -41,10 +40,7 @@ export default function SessionsScreen() {
   };
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
-      edges={['top']}
-    >
+    <SafeScreen edges={['top']} backgroundColor={theme.colors.background}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -87,7 +83,7 @@ export default function SessionsScreen() {
           })}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </SafeScreen>
   );
 }
 

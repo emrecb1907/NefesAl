@@ -1,15 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../styles/colors';
+import { SafeScreen } from '../components';
 
 export default function SettingsScreen() {
   const theme = useTheme();
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
-    >
+    <SafeScreen edges={['top', 'bottom']} backgroundColor={theme.colors.background}>
       <View style={styles.content}>
         <Text style={[styles.title, { color: theme.colors.text }]}>
           Settings Screen
@@ -18,7 +16,7 @@ export default function SettingsScreen() {
           Configure your app preferences
         </Text>
       </View>
-    </SafeAreaView>
+    </SafeScreen>
   );
 }
 

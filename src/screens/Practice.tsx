@@ -6,14 +6,13 @@ import {
   TouchableOpacity,
   BackHandler,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme } from '../styles/colors';
 import { useAppStore } from '../state/store';
 import { BreathingCircle } from '../components/BreathingCircle';
 import { SessionCompleteModal } from '../components/SessionCompleteModal';
-import { Button } from '../components';
+import { Button, SafeScreen } from '../components';
 import { breathingPatterns } from '../constants/breathingPatterns';
 import { formatTime } from '../utils/formatTime';
 import { hapticFeedback } from '../utils/haptics';
@@ -194,12 +193,9 @@ export default function PracticeScreen() {
   };
 
   return (
-    <SafeAreaView
-      style={[
-        styles.container,
-        { backgroundColor: theme.colors.background || '#F8FAFC' },
-      ]}
+    <SafeScreen
       edges={['top', 'bottom']}
+      backgroundColor={theme.colors.background || '#F8FAFC'}
     >
       {/* Header */}
       <View style={styles.header}>
@@ -273,7 +269,7 @@ export default function PracticeScreen() {
         exhaleTime={phaseTimes.exhale}
         onDone={handleDone}
       />
-    </SafeAreaView>
+    </SafeScreen>
   );
 }
 

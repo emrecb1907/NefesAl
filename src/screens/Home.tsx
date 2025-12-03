@@ -6,79 +6,40 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import { useTheme } from '../styles/colors';
+import { useTheme, useIsDarkMode } from '../styles/colors';
 import { useAppStore } from '../state/store';
-import { StatCard, QuickStartCard, SessionCard } from '../components';
+import { SafeScreen } from '../components';
 import { breathingPatterns } from '../constants/breathingPatterns';
-import { formatDuration } from '../utils/formatTime';
 import { MainTabParamList, RootStackParamList } from '../navigation/types';
 import { CompositeNavigationProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import Svg, { Path, Circle } from 'react-native-svg';
+import Svg, { Circle } from 'react-native-svg';
 
 type HomeScreenNavigationProp = CompositeNavigationProp<
   BottomTabNavigationProp<MainTabParamList, 'Home'>,
   NativeStackNavigationProp<RootStackParamList>
 >;
 
-const getGreeting = () => {
-  const hour = new Date().getHours();
-  if (hour < 12) return 'Good Morning';
-  if (hour < 18) return 'Good Afternoon';
-  return 'Good Evening';
-};
-
-const StatIcon = ({ type }: { type: 'streak' | 'sessions' | 'minutes' }) => {
-  if (type === 'streak') {
-    return (
-      <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-        <Path
-          d="M12 2 L15 9 L22 10 L17 15 L18 22 L12 18 L6 22 L7 15 L2 10 L9 9 Z"
-          fill="#f59e0b"
-        />
-      </Svg>
-    );
-  }
-  if (type === 'sessions') {
-    return (
-      <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-        <Circle cx="12" cy="12" r="10" stroke="#6366f1" strokeWidth="2" />
-        <Path
-          d="M12 6 L12 12 L16 14"
-          stroke="#6366f1"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-      </Svg>
-    );
-  }
-  return (
-    <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M12 2 C6.48 2 2 6.48 2 12 C2 17.52 6.48 22 12 22 C17.52 22 22 17.52 22 12 C22 6.48 17.52 2 12 2 Z"
-        fill="#10b981"
-      />
-      <Path
-        d="M12 6 L12 12 L16 14"
-        stroke="white"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-    </Svg>
-  );
-};
 
 export default function HomeScreen() {
   const theme = useTheme();
+  const isDarkMode = useIsDarkMode();
   const navigation = useNavigation<HomeScreenNavigationProp>();
-  const { streak, totalSessions, totalMinutes } = useAppStore();
-  const defaultPattern = breathingPatterns[0];
+  const { streak } = useAppStore();
+  const defaultPattern = breathingPatterns[0]; // Relax Breathing pattern
 
-  const handleQuickStart = () => {
-    // Navigate to Practice screen
+  // Theme-aware colors
+  const backgroundColor = isDarkMode ? '#0F172A' : '#F5F9FC';
+  const streakBadgeBg = isDarkMode ? '#1E293B' : '#F3F4F6';
+  const streakTextColor = isDarkMode ? '#CBD5E1' : '#374151';
+  const todayPracticeCardBg = isDarkMode ? '#1E3A5F' : '#E8F4F8';
+  const quickAccessCardBg = isDarkMode ? '#1F2937' : '#FFFFFF';
+  const circleStrokeColor = isDarkMode ? '#475569' : '#D1D5DB';
+
+  const handleStartPractice = () => {
     const rootNavigation = navigation.getParent();
     if (rootNavigation) {
       rootNavigation.navigate('Practice', {
@@ -88,160 +49,206 @@ export default function HomeScreen() {
     }
   };
 
-  const handleSessionPress = (patternId: string) => {
-    // Navigate to Practice screen with selected pattern
-    const pattern = breathingPatterns.find((p) => p.id === patternId) || defaultPattern;
-    const rootNavigation = navigation.getParent();
-    if (rootNavigation) {
-      rootNavigation.navigate('Practice', {
-        patternId: pattern.id,
-        patternName: pattern.name,
-      });
+  const handleCardPress = (screen: 'Sessions' | 'Sounds' | 'Stats') => {
+    if (screen === 'Sessions') {
+      navigation.navigate('Sessions');
+    } else if (screen === 'Sounds') {
+      const rootNavigation = navigation.getParent();
+      if (rootNavigation) {
+        rootNavigation.navigate('Sounds');
+      }
+    } else if (screen === 'Stats') {
+      navigation.navigate('Stats');
     }
   };
 
-  const featuredSessions = breathingPatterns.slice(0, 3);
-
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
-      edges={['top']}
-    >
+    <SafeScreen edges={['top']} backgroundColor={backgroundColor}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* Streak Badge */}
+        <View style={styles.streakBadgeContainer}>
+          <View style={[styles.streakBadge, { backgroundColor: streakBadgeBg }]}>
+            <Text style={[styles.streakText, { color: streakTextColor }]}>{streak}-day streak</Text>
+          </View>
+        </View>
+
         {/* Header */}
         <View style={styles.header}>
-          <View>
-            <Text style={[styles.greeting, { color: theme.colors.textSecondary }]}>
-              {getGreeting()}
-            </Text>
-            <Text style={[styles.title, { color: theme.colors.text }]}>
-              Ready to breathe?
-            </Text>
+          <Text style={[styles.mainTitle, { color: theme.colors.text }]}>Breathe & Relax</Text>
+          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>Welcome Back</Text>
+        </View>
+
+        {/* Today's Practice Card */}
+        <View style={[styles.todayPracticeCard, { backgroundColor: todayPracticeCardBg }]}>
+          <View style={styles.todayPracticeContent}>
+            <View style={styles.todayPracticeText}>
+              <Text style={[styles.todayPracticeLabel, { color: theme.colors.textSecondary }]}>Today's Practice</Text>
+              <Text style={[styles.todayPracticeTitle, { color: theme.colors.text }]}>Relax Breathing</Text>
+              <Text style={[styles.todayPracticeDetails, { color: theme.colors.textSecondary }]}>
+                {defaultPattern.inhale}-{defaultPattern.hold}-{defaultPattern.exhale}-{defaultPattern.holdAfterExhale} rhythm · 5 minutes
+              </Text>
+            </View>
+            <View style={styles.circlePlaceholder}>
+              <Svg width={80} height={80} viewBox="0 0 80 80">
+                <Circle cx="40" cy="40" r="38" stroke={circleStrokeColor} strokeWidth="2" fill="none" />
+              </Svg>
+            </View>
           </View>
-          <TouchableOpacity
-            onPress={() => {
-              // Navigate to Settings modal
-              const rootNavigation = navigation.getParent();
-              if (rootNavigation) {
-                rootNavigation.navigate('Settings');
-              }
-            }}
-            style={styles.settingsButton}
+        </View>
+
+        {/* Start Practice Button */}
+        <TouchableOpacity
+          style={styles.startButton}
+          onPress={handleStartPractice}
+          activeOpacity={0.8}
+        >
+          <LinearGradient
+            colors={isDarkMode ? ['#475569', '#334155'] : ['#93C5FD', '#60A5FA']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.startButtonGradient}
           >
-            <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-              <Circle cx="12" cy="12" r="3" stroke={theme.colors.textSecondary} strokeWidth="2" />
-              <Path
-                d="M12 1 L12 5 M12 19 L12 23 M1 12 L5 12 M19 12 L23 12"
-                stroke={theme.colors.textSecondary}
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </Svg>
+            <Text style={styles.startButtonText}>Start Practice</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+
+        {/* Quick Access Cards */}
+        <View style={styles.quickAccessRow}>
+          <TouchableOpacity
+            style={[styles.quickAccessCard, { backgroundColor: quickAccessCardBg }]}
+            onPress={() => handleCardPress('Sessions')}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.quickAccessText, { color: theme.colors.text }]}>Techniques</Text>
           </TouchableOpacity>
-        </View>
-
-        {/* Stats Row */}
-        <View style={styles.statsRow}>
-          <StatCard
-            label="Day Streak"
-            value={streak}
-            icon={<StatIcon type="streak" />}
-          />
-          <View style={styles.statSpacer} />
-          <StatCard
-            label="Sessions"
-            value={totalSessions}
-            icon={<StatIcon type="sessions" />}
-          />
-          <View style={styles.statSpacer} />
-          <StatCard
-            label="Minutes"
-            value={formatDuration(totalMinutes)}
-            icon={<StatIcon type="minutes" />}
-          />
-        </View>
-
-        {/* Quick Start Card */}
-        <QuickStartCard
-          title="Quick Start"
-          description="Begin a breathing session now"
-          duration={`${defaultPattern.inhale + defaultPattern.exhale + defaultPattern.hold + defaultPattern.holdAfterExhale} min`}
-          onPress={handleQuickStart}
-        />
-
-        {/* Featured Sessions */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-            Featured Sessions
-          </Text>
-          {featuredSessions.map((pattern) => (
-            <SessionCard
-              key={pattern.id}
-              title={pattern.name}
-              description={pattern.description}
-              duration={`${pattern.inhale}-${pattern.hold}-${pattern.exhale}-${pattern.holdAfterExhale}`}
-              onPress={() => handleSessionPress(pattern.id)}
-              color={theme.colors.primary}
-            />
-          ))}
+          <TouchableOpacity
+            style={[styles.quickAccessCard, { backgroundColor: quickAccessCardBg }]}
+            onPress={() => handleCardPress('Sounds')}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.quickAccessText, { color: theme.colors.text }]}>Sounds</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.quickAccessCard, { backgroundColor: quickAccessCardBg }]}
+            onPress={() => handleCardPress('Stats')}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.quickAccessText, { color: theme.colors.text }]}>Stats</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Bottom Spacing */}
         <View style={styles.bottomSpacing} />
       </ScrollView>
-    </SafeAreaView>
+    </SafeScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     paddingBottom: 20,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    paddingHorizontal: 20,
+  streakBadgeContainer: {
+    alignItems: 'center',
     paddingTop: 20,
-    paddingBottom: 24,
+    paddingBottom: 16,
   },
-  greeting: {
+  streakBadge: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  streakText: {
     fontSize: 14,
     fontWeight: '500',
+  },
+  header: {
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 24,
+  },
+  mainTitle: {
+    fontSize: 32,
+    fontWeight: '700',
     marginBottom: 4,
   },
-  title: {
-    fontSize: 28,
+  subtitle: {
+    fontSize: 16,
+    fontWeight: '400',
+  },
+  todayPracticeCard: {
+    borderRadius: 24,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    padding: 20,
+  },
+  todayPracticeContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  todayPracticeText: {
+    flex: 1,
+  },
+  todayPracticeLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 8,
+  },
+  todayPracticeTitle: {
+    fontSize: 24,
     fontWeight: '700',
+    marginBottom: 4,
   },
-  settingsButton: {
-    padding: 8,
+  todayPracticeDetails: {
+    fontSize: 14,
+    fontWeight: '400',
   },
-  statsRow: {
+  circlePlaceholder: {
+    width: 80,
+    height: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  startButton: {
+    marginHorizontal: 20,
+    marginBottom: 24,
+    borderRadius: 28,
+    overflow: 'hidden',
+  },
+  startButtonGradient: {
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  startButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  quickAccessRow: {
     flexDirection: 'row',
     paddingHorizontal: 20,
-    marginBottom: 24,
+    gap: 12,
   },
-  statSpacer: {
-    width: 12,
+  quickAccessCard: {
+    flex: 1,
+    borderRadius: 24,
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 100,
   },
-  section: {
-    paddingHorizontal: 20,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 16,
+  quickAccessText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
   bottomSpacing: {
     height: 20,

@@ -9,9 +9,11 @@ import {
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useTheme } from '../styles/colors';
-import { Button, Card } from '../components';
+import { Button } from './Button';
+import { Card } from './Card';
 import { useAppStore } from '../state/store';
 import { formatTime } from '../utils/formatTime';
+import { useTranslation } from '../hooks/useTranslation';
 import Svg, { Path } from 'react-native-svg';
 
 interface SessionCompleteModalProps {
@@ -34,6 +36,7 @@ export const SessionCompleteModal: React.FC<SessionCompleteModalProps> = ({
   onDone,
 }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const { streak, incrementStreak } = useAppStore();
 
   const minutes = Math.floor(totalTime / 60);
@@ -59,12 +62,12 @@ export const SessionCompleteModal: React.FC<SessionCompleteModalProps> = ({
             {/* Header */}
             <View style={styles.header}>
               <Text style={[styles.title, { color: theme.colors.text }]}>
-                Session Complete
+                {t('practice.complete.title')}
               </Text>
               <Text
                 style={[styles.subtitle, { color: theme.colors.textSecondary }]}
               >
-                Great work! Here's today's progress.
+                {t('practice.complete.subtitle')}
               </Text>
             </View>
 
@@ -79,7 +82,7 @@ export const SessionCompleteModal: React.FC<SessionCompleteModalProps> = ({
                       { color: theme.colors.textSecondary },
                     ]}
                   >
-                    Total Time
+                    {t('practice.complete.totalTime')}
                   </Text>
                   <Text style={[styles.progressValue, { color: theme.colors.text }]}>
                     {formatTime(totalTime)}
@@ -92,10 +95,10 @@ export const SessionCompleteModal: React.FC<SessionCompleteModalProps> = ({
                       { color: theme.colors.textSecondary },
                     ]}
                   >
-                    Breathing Cycles
+                    {t('practice.complete.cycles')}
                   </Text>
                   <Text style={[styles.progressValue, { color: theme.colors.text }]}>
-                    {cycles} cycles
+                    {cycles} {t('practice.complete.cycles').toLowerCase()}
                   </Text>
                 </View>
               </View>
@@ -114,7 +117,7 @@ export const SessionCompleteModal: React.FC<SessionCompleteModalProps> = ({
                       { color: theme.colors.textSecondary },
                     ]}
                   >
-                    Inhale
+                    {t('practice.complete.inhale')}
                   </Text>
                   <Text
                     style={[
@@ -132,7 +135,7 @@ export const SessionCompleteModal: React.FC<SessionCompleteModalProps> = ({
                       { color: theme.colors.textSecondary },
                     ]}
                   >
-                    Hold
+                    {t('practice.complete.hold')}
                   </Text>
                   <Text
                     style={[
@@ -150,7 +153,7 @@ export const SessionCompleteModal: React.FC<SessionCompleteModalProps> = ({
                       { color: theme.colors.textSecondary },
                     ]}
                   >
-                    Exhale
+                    {t('practice.complete.exhale')}
                   </Text>
                   <Text
                     style={[
@@ -199,7 +202,7 @@ export const SessionCompleteModal: React.FC<SessionCompleteModalProps> = ({
 
             {/* Done Button */}
             <View style={styles.buttonContainer}>
-              <Button title="Done" onPress={onDone} fullWidth />
+              <Button title={t('common.done')} onPress={onDone} fullWidth />
             </View>
           </View>
         </ScrollView>
