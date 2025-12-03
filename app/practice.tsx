@@ -8,6 +8,7 @@ import {
   Dimensions,
   Image,
 } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme, useIsDarkMode } from '../src/styles/colors';
 import { useAppStore } from '../src/state/store';
@@ -39,10 +40,10 @@ export default function PracticeScreen() {
   }>();
 
   const { addSession, incrementStreak, practiceDuration, defaultAmbiance } = useAppStore();
-  
+
   // Get selected ambiance for background image
   const selectedAmbiance = ambiances.find(a => a.id === defaultAmbiance);
-  
+
   // Remove debug logs to avoid unnecessary renders
 
   const patternId = params?.patternId || 'box';
@@ -54,18 +55,6 @@ export default function PracticeScreen() {
   const [currentPhase, setCurrentPhase] = useState<Phase>('inhale');
   const [timeRemaining, setTimeRemaining] = useState(practiceDuration * 60); // Use selected duration from store
   const [showCompleteModal, setShowCompleteModal] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
-  
-  // Image should already be cached from home screen preload
-  // But we still need to wait for onLoad to confirm it's ready
-  useEffect(() => {
-    if (selectedAmbiance?.imageFile) {
-      // Start with false, will be set to true when image loads
-      setImageLoaded(false);
-    } else {
-      setImageLoaded(true); // No image to load
-    }
-  }, [selectedAmbiance?.imageFile]);
 
   // Update timeRemaining when practiceDuration changes
   useEffect(() => {
@@ -86,6 +75,7 @@ export default function PracticeScreen() {
     hold: 0,
     exhale: 0,
     holdAfterExhale: 0,
+    rest: 0,
   });
   const [totalTime, setTotalTime] = useState(0);
 
@@ -168,7 +158,7 @@ export default function PracticeScreen() {
   // Preload audio players when component mounts or defaultAmbiance changes
   useEffect(() => {
     const ambiance = ambiances.find(a => a.id === defaultAmbiance);
-    
+
     if (ambiance?.soundFile && !audioPlayerRef.current && !audioPlayer2Ref.current) {
       // Preload players in background
       const player1 = createAudioPlayer(ambiance.soundFile);
@@ -176,19 +166,19 @@ export default function PracticeScreen() {
       player1.volume = 0;
       player1.muted = true; // Keep muted until start
       audioPlayerRef.current = player1;
-      
+
       const player2 = createAudioPlayer(ambiance.soundFile);
       player2.loop = false;
       player2.volume = 0;
       player2.muted = true;
       audioPlayer2Ref.current = player2;
       activePlayerRef.current = 'player1';
-      
+
       // Preload by seeking to 0 (this triggers loading)
-      player1.seekTo(0).catch(() => {});
-      player2.seekTo(0).catch(() => {});
+      player1.seekTo(0).catch(() => { });
+      player2.seekTo(0).catch(() => { });
     }
-    
+
     return () => {
       // Don't cleanup on unmount here, let the cleanup useEffect handle it
     };
@@ -203,7 +193,7 @@ export default function PracticeScreen() {
         timeRemainingRef.current = newTime;
         return newTime;
       });
-      
+
       // Ensure audio players are still playing if they should be
       if (audioPlayerRef.current && !audioPlayerRef.current.playing && audioPlayerRef.current.isLoaded && activePlayerRef.current === 'player1') {
         audioPlayerRef.current.play();
@@ -221,25 +211,25 @@ export default function PracticeScreen() {
     const sessionDuration = Math.floor((Date.now() - sessionStartTimeRef.current) / 1000);
     const minutes = Math.floor(sessionDuration / 60);
 
-      // Stop ambient sounds
-      if (audioPlayerRef.current) {
-        const subscription1 = (audioPlayerRef.current as any)?._statusSubscription;
-        if (subscription1 && typeof subscription1.remove === 'function') {
-          subscription1.remove();
-        }
-        audioPlayerRef.current.pause();
-        audioPlayerRef.current.remove();
-        audioPlayerRef.current = null;
+    // Stop ambient sounds
+    if (audioPlayerRef.current) {
+      const subscription1 = (audioPlayerRef.current as any)?._statusSubscription;
+      if (subscription1 && typeof subscription1.remove === 'function') {
+        subscription1.remove();
       }
-      if (audioPlayer2Ref.current) {
-        const subscription2 = (audioPlayer2Ref.current as any)?._statusSubscription;
-        if (subscription2 && typeof subscription2.remove === 'function') {
-          subscription2.remove();
-        }
-        audioPlayer2Ref.current.pause();
-        audioPlayer2Ref.current.remove();
-        audioPlayer2Ref.current = null;
+      audioPlayerRef.current.pause();
+      audioPlayerRef.current.remove();
+      audioPlayerRef.current = null;
+    }
+    if (audioPlayer2Ref.current) {
+      const subscription2 = (audioPlayer2Ref.current as any)?._statusSubscription;
+      if (subscription2 && typeof subscription2.remove === 'function') {
+        subscription2.remove();
       }
+      audioPlayer2Ref.current.pause();
+      audioPlayer2Ref.current.remove();
+      audioPlayer2Ref.current = null;
+    }
 
     // Update store
     addSession(minutes);
@@ -339,15 +329,15 @@ export default function PracticeScreen() {
     sessionStartTimeRef.current = Date.now();
     phaseStartTimeRef.current = Date.now();
     hapticFeedback.medium();
-    
+
     // Start playing ambient sound with seamless looping using dual players
     try {
       const ambiance = ambiances.find(a => a.id === defaultAmbiance);
-      
+
       if (ambiance?.soundFile) {
         let player1 = audioPlayerRef.current;
         let player2 = audioPlayer2Ref.current;
-        
+
         // If players don't exist or are for different ambiance, create new ones
         if (!player1 || !player2) {
           // Clean up existing players if any
@@ -367,13 +357,13 @@ export default function PracticeScreen() {
             audioPlayer2Ref.current.pause();
             audioPlayer2Ref.current.remove();
           }
-          
+
           // Create new players
           player1 = createAudioPlayer(ambiance.soundFile);
           player1.loop = false;
           player1.volume = 0.5;
           audioPlayerRef.current = player1;
-          
+
           player2 = createAudioPlayer(ambiance.soundFile);
           player2.loop = false;
           player2.volume = 0;
@@ -390,32 +380,32 @@ export default function PracticeScreen() {
           if (subscription2 && typeof subscription2.remove === 'function') {
             subscription2.remove();
           }
-          
+
           // Reset players
           player1.volume = 0.5;
           player1.muted = false;
-          player1.seekTo(0).catch(() => {});
-          
+          player1.seekTo(0).catch(() => { });
+
           player2.volume = 0;
           player2.muted = false;
-          player2.seekTo(0).catch(() => {});
-          
+          player2.seekTo(0).catch(() => { });
+
           activePlayerRef.current = 'player1';
         }
-        
+
         // Setup seamless looping with crossfade
         const setupSeamlessLoop = (primaryPlayer: AudioPlayer, secondaryPlayer: AudioPlayer) => {
           const subscription = primaryPlayer.addListener('playbackStatusUpdate', (status) => {
             if (!status.isLoaded || !status.duration) return;
-            
+
             const progress = status.currentTime / status.duration;
             const timeRemaining = status.duration - status.currentTime;
-            
+
             // When primary player is at 80% progress, start fading in secondary player
             if (progress >= 0.80 && !secondaryPlayer.playing && secondaryPlayer.isLoaded) {
               secondaryPlayer.volume = 0;
               secondaryPlayer.play();
-              
+
               // Fade in secondary player gradually
               let fadeStep = 0;
               const fadeInterval = setInterval(() => {
@@ -429,10 +419,10 @@ export default function PracticeScreen() {
                   primaryPlayer.pause();
                   primaryPlayer.volume = 0;
                   secondaryPlayer.volume = 0.5;
-                  
+
                   // Remove old listener before setting up new one
                   subscription.remove();
-                  
+
                   // Swap references
                   if (activePlayerRef.current === 'player1') {
                     activePlayerRef.current = 'player2';
@@ -444,21 +434,21 @@ export default function PracticeScreen() {
                 }
               }, 50);
             }
-            
+
             // If player finished, restart it silently for next cycle
             if (status.didJustFinish) {
               primaryPlayer.seekTo(0);
               primaryPlayer.volume = 0;
             }
           });
-          
+
           // Store subscription for cleanup
           (primaryPlayer as any)._statusSubscription = subscription;
         };
-        
+
         // Setup looping for both players
         setupSeamlessLoop(player1, player2);
-        
+
         // Play immediately if loaded, otherwise wait
         if (player1.isLoaded) {
           player1.play();
@@ -466,7 +456,7 @@ export default function PracticeScreen() {
           // Wait for player to load, then play
           let attempts = 0;
           const maxAttempts = 50;
-          
+
           const tryPlay = () => {
             attempts++;
             if (player1.isLoaded) {
@@ -480,7 +470,7 @@ export default function PracticeScreen() {
               player1.play();
             }
           };
-          
+
           // Start checking immediately
           tryPlay();
         }
@@ -493,7 +483,7 @@ export default function PracticeScreen() {
   const handlePause = () => {
     setIsActive(false);
     hapticFeedback.light();
-    
+
     // Pause ambient sounds
     if (audioPlayerRef.current) {
       audioPlayerRef.current.pause();
@@ -510,43 +500,27 @@ export default function PracticeScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Background Image - Only render when loaded, should be cached from home screen preload */}
-      {selectedAmbiance?.imageFile && imageLoaded && (
+      <StatusBar style="light" />
+      {/* Background Image - Render immediately, cached from home screen preload */}
+      {selectedAmbiance?.imageFile ? (
         <Image
           source={selectedAmbiance.imageFile}
           style={styles.backgroundImage}
           resizeMode="cover"
-          onError={(error) => {
-            console.error('Image load error:', error.nativeEvent?.error || error);
-          }}
         />
+      ) : (
+        <View style={[styles.containerBackground, { backgroundColor: selectedAmbiance?.color || theme.colors.background }]} />
       )}
-      {/* Show fallback background while image is loading */}
-      {selectedAmbiance?.imageFile && !imageLoaded && (
-        <View style={[styles.containerBackground, { backgroundColor: theme.colors.background }]} />
-      )}
-      {/* Preload image in background - this should be instant since it was preloaded in home screen */}
-      {selectedAmbiance?.imageFile && !imageLoaded && (
-        <Image
-          source={selectedAmbiance.imageFile}
-          style={{ width: 1, height: 1, position: 'absolute', opacity: 0, zIndex: -1 }}
-          resizeMode="cover"
-          onLoad={() => {
-            setImageLoaded(true);
-          }}
-          onError={(error) => {
-            console.error('Image load error:', error.nativeEvent?.error || error);
-            setImageLoaded(true); // Even on error, show the screen
-          }}
+      {/* Fallback background with ambiance color - shows while image loads */}
+      <View style={[styles.containerBackground, { backgroundColor: selectedAmbiance?.color || theme.colors.background, zIndex: -1 }]} />
+      {/* Overlay - Always visible but changes opacity based on active state */}
+      {selectedAmbiance?.imageFile && (
+        <View
+          style={[
+            styles.overlay,
+            { backgroundColor: isActive ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.5)' }
+          ]}
         />
-      )}
-      {/* Light overlay for readability - only when image is shown and practice not active */}
-      {selectedAmbiance?.imageFile && !isActive && (
-        <View style={styles.overlay} />
-      )}
-      {/* Fallback background when no image */}
-      {!selectedAmbiance?.imageFile && (
-        <View style={[styles.containerBackground, { backgroundColor: theme.colors.background }]} />
       )}
       {/* Header - Safe area dışında */}
       <View style={[styles.header, { paddingTop: insets.top }]}>
@@ -563,7 +537,7 @@ export default function PracticeScreen() {
           <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
             <Path
               d="M15 18 L9 12 L15 6"
-              stroke={theme.colors.text}
+              stroke="#FFFFFF"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -571,10 +545,10 @@ export default function PracticeScreen() {
           </Svg>
         </TouchableOpacity>
         <View style={styles.headerText}>
-          <Text style={[styles.headerLabel, { color: theme.colors.textSecondary }]}>
+          <Text style={[styles.headerLabel, { color: '#FFFFFF' }]}>
             Breath Practice
           </Text>
-          <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
+          <Text style={[styles.headerTitle, { color: '#FFFFFF' }]}>
             {patternName}
           </Text>
         </View>
@@ -592,46 +566,46 @@ export default function PracticeScreen() {
         <View style={styles.timerButtonWrapper}>
           {/* Timer */}
           <View style={styles.timerContainer}>
-            <Text style={[styles.timer, { color: theme.colors.text }]}>
+            <Text style={[styles.timer, { color: '#FFFFFF' }]}>
               {formatTime(timeRemaining)}
             </Text>
           </View>
 
           {/* Control Button */}
           <View style={styles.buttonContainer}>
-              {!isActive ? (
-                <Button
-                  title={timeRemaining === practiceDuration * 60 ? t('practice.start') : t('practice.resume')}
-                  onPress={handleStart}
-                  fullWidth
-                />
-              ) : (
-                <TouchableOpacity
-                  style={styles.pauseButton}
-                  onPress={handlePause}
-                  activeOpacity={0.8}
+            {!isActive ? (
+              <Button
+                title={timeRemaining === practiceDuration * 60 ? t('practice.start') : t('practice.resume')}
+                onPress={handleStart}
+                fullWidth
+              />
+            ) : (
+              <TouchableOpacity
+                style={styles.pauseButton}
+                onPress={handlePause}
+                activeOpacity={0.8}
+              >
+                <LinearGradient
+                  colors={isDarkMode
+                    ? ['#475569', '#64748B'] // Dark mode: açık gri tonları
+                    : ['#E0E7FF', '#C7D2FE'] // Light mode: açık mavi tonları
+                  }
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.pauseButtonGradient}
                 >
-                  <LinearGradient
-                    colors={isDarkMode 
-                      ? ['#475569', '#64748B'] // Dark mode: açık gri tonları
-                      : ['#E0E7FF', '#C7D2FE'] // Light mode: açık mavi tonları
-                    }
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.pauseButtonGradient}
-                  >
-                    <View style={styles.pauseButtonContent}>
-                      <Pause size={20} color={isDarkMode ? '#FFFFFF' : '#6366F1'} weight="fill" />
-                      <Text style={[styles.pauseButtonText, { color: isDarkMode ? '#FFFFFF' : '#6366F1' }]}>
-                        {t('practice.pause')}
-                      </Text>
-                    </View>
-                  </LinearGradient>
-                </TouchableOpacity>
-              )}
-            </View>
+                  <View style={styles.pauseButtonContent}>
+                    <Pause size={20} color={isDarkMode ? '#FFFFFF' : '#6366F1'} weight="fill" />
+                    <Text style={[styles.pauseButtonText, { color: isDarkMode ? '#FFFFFF' : '#6366F1' }]}>
+                      {t('practice.pause')}
+                    </Text>
+                  </View>
+                </LinearGradient>
+              </TouchableOpacity>
+            )}
           </View>
-        </SafeAreaView>
+        </View>
+      </SafeAreaView>
 
       {/* Session Complete Modal */}
       <SessionCompleteModal
@@ -683,7 +657,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.05)', // Very light overlay so image is clearly visible
+    backgroundColor: 'rgba(0, 0, 0, 0.3)', // Default overlay
     zIndex: 1,
   },
   safeContent: {

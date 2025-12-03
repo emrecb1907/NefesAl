@@ -11,6 +11,7 @@ import {
 import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import { Asset } from 'expo-asset';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -33,71 +34,61 @@ export default function HomeScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { streak, selectedPatternId, userName, practiceDuration, setPracticeDuration, profileImageUri, defaultAmbiance } = useAppStore();
-  
+
   // Debug: Log profileImageUri when it changes
   useEffect(() => {
     console.log('HomeScreen - profileImageUri:', profileImageUri);
   }, [profileImageUri]);
   const [showDurationModal, setShowDurationModal] = useState(false);
+  const [isStartingPractice, setIsStartingPractice] = useState(false);
   const insets = useSafeAreaInsets();
-  
+
   // Seçilen pattern varsa onu kullan, yoksa default pattern'i kullan
-  const selectedPattern = selectedPatternId 
+  const selectedPattern = selectedPatternId
     ? breathingPatterns.find(p => p.id === selectedPatternId) || breathingPatterns[0]
     : breathingPatterns[0];
-  
+
   // Çevrilmiş pattern ismi ve açıklaması
   const selectedPatternName = t(`sessions.patterns.${selectedPattern.id}.name`) || selectedPattern.name;
-  
+
   // Seçilen ses bilgisi
   const selectedAmbiance = ambiances.find(a => a.id === defaultAmbiance);
   const selectedSoundName = selectedAmbiance?.name || '';
-  
-  // Loading state for image preload
-  const [isLoadingImage, setIsLoadingImage] = useState(false);
-  const shimmerTranslateX = useSharedValue(-1);
 
   // Theme-aware colors
   const streakBadgeBg = isDarkMode ? '#1E293B' : '#F3F4F6';
   const streakTextColor = isDarkMode ? '#CBD5E1' : '#374151';
   const quickAccessCardBg = isDarkMode ? '#1F2937' : '#FFFFFF';
   const circleStrokeColor = isDarkMode ? '#475569' : '#D1D5DB';
-  
+
   // Gradient colors for Today's Practice Card (açık mavi tonları)
-  const todayPracticeGradientColors = isDarkMode 
+  const todayPracticeGradientColors: readonly [string, string] = isDarkMode
     ? ['#1E40AF', '#3B82F6'] // Dark mode: koyu mavi tonları
     : ['#DBEAFE', '#BFDBFE']; // Light mode: açık mavi tonları
 
-  // Shimmer animation
+  // Aggressively prefetch the background image on mount
+  // Aggressively prefetch the background image on mount using expo-asset
   useEffect(() => {
-    if (isLoadingImage) {
-      shimmerTranslateX.value = withRepeat(
-        withTiming(1, { duration: 1500 }),
-        -1,
-        false
-      );
-    }
-  }, [isLoadingImage]);
+    const ambiance = ambiances.find(a => a.id === defaultAmbiance);
 
-  const shimmerStyle = useAnimatedStyle(() => {
-    const translateX = interpolate(
-      shimmerTranslateX.value,
-      [-1, 1],
-      [-200, 200]
-    );
-    return {
-      transform: [{ translateX }],
-    };
-  });
+    if (ambiance?.imageFile) {
+      // Use Asset.loadAsync to ensure the asset is downloaded and cached
+      Asset.loadAsync(ambiance.imageFile)
+        .then(() => {
+          console.log('Background image asset loaded successfully');
+        })
+        .catch((error: any) => {
+          console.warn('Failed to load background image asset:', error);
+        });
+    }
+  }, [defaultAmbiance]);
 
   const handleStartPractice = () => {
-    const ambiance = ambiances.find(a => a.id === defaultAmbiance);
-    
-    if (ambiance?.imageFile) {
-      // Start loading - image will be rendered hidden and onLoad will navigate
-      setIsLoadingImage(true);
-    } else {
-      // No image to load, navigate immediately
+    // Set loading state for visual feedback
+    setIsStartingPractice(true);
+
+    // Small delay to ensure loading state is visible
+    setTimeout(() => {
       router.push({
         pathname: '/practice',
         params: {
@@ -105,32 +96,9 @@ export default function HomeScreen() {
           patternName: selectedPatternName,
         },
       });
-    }
-  };
-
-  const handleImageLoad = () => {
-    // Image loaded, navigate to practice screen - image is now fully cached
-    console.log('Home screen - Image fully loaded, navigating to practice');
-    setIsLoadingImage(false);
-    router.push({
-      pathname: '/practice',
-      params: {
-        patternId: selectedPattern.id,
-        patternName: selectedPatternName,
-      },
-    });
-  };
-
-  const handleImageError = () => {
-    // Even if image fails to load, navigate anyway
-    setIsLoadingImage(false);
-    router.push({
-      pathname: '/practice',
-      params: {
-        patternId: selectedPattern.id,
-        patternName: selectedPatternName,
-      },
-    });
+      // Reset loading state after navigation
+      setTimeout(() => setIsStartingPractice(false), 500);
+    }, 50);
   };
 
   const handleCardPress = (screen: 'sessions' | 'sounds' | 'duration') => {
@@ -158,8 +126,8 @@ export default function HomeScreen() {
         {/* Welcome Header with Avatar */}
         <View style={styles.welcomeHeader}>
           {profileImageUri ? (
-            <Image 
-              source={{ uri: profileImageUri }} 
+            <Image
+              source={{ uri: profileImageUri }}
               style={styles.avatarImage}
               resizeMode="cover"
             />
@@ -203,70 +171,42 @@ export default function HomeScreen() {
             style={styles.todayPracticeGradient}
           >
             <View style={styles.todayPracticeContent}>
-            <View style={styles.todayPracticeText}>
-              <Text style={[styles.todayPracticeLabel, { color: theme.colors.textSecondary }]}>{t('home.todaysPractice')}</Text>
-              <Text style={[styles.todayPracticeTitle, { color: theme.colors.text }]}>{selectedPatternName}</Text>
-              <Text style={[styles.todayPracticeDetails, { color: theme.colors.textSecondary }]}>
-                {selectedPattern.inhale}-{selectedPattern.hold}-{selectedPattern.exhale}-{selectedPattern.holdAfterExhale} {t('home.rhythm')} · {practiceDuration} {t('home.minutes')}
-              </Text>
-              {selectedSoundName ? (
-                <Text style={[styles.todayPracticeSound, { color: theme.colors.textSecondary }]}>
-                  {selectedSoundName}
+              <View style={styles.todayPracticeText}>
+                <Text style={[styles.todayPracticeLabel, { color: theme.colors.textSecondary }]}>{t('home.todaysPractice')}</Text>
+                <Text style={[styles.todayPracticeTitle, { color: theme.colors.text }]}>{selectedPatternName}</Text>
+                <Text style={[styles.todayPracticeDetails, { color: theme.colors.textSecondary }]}>
+                  {selectedPattern.inhale}-{selectedPattern.hold}-{selectedPattern.exhale}-{selectedPattern.holdAfterExhale} {t('home.rhythm')} · {practiceDuration} {t('home.minutes')}
                 </Text>
-              ) : null}
+                {selectedSoundName ? (
+                  <Text style={[styles.todayPracticeSound, { color: theme.colors.textSecondary }]}>
+                    {selectedSoundName}
+                  </Text>
+                ) : null}
+              </View>
+              <View style={styles.circlePlaceholder}>
+                <Svg width={80} height={80} viewBox="0 0 80 80">
+                  <Circle cx="40" cy="40" r="38" stroke={circleStrokeColor} strokeWidth="2" fill="none" />
+                </Svg>
+              </View>
             </View>
-            <View style={styles.circlePlaceholder}>
-              <Svg width={80} height={80} viewBox="0 0 80 80">
-                <Circle cx="40" cy="40" r="38" stroke={circleStrokeColor} strokeWidth="2" fill="none" />
-              </Svg>
-            </View>
-          </View>
           </LinearGradient>
         </TouchableOpacity>
 
         {/* Start Practice Button */}
         <View style={styles.startButtonContainer}>
-          {isLoadingImage ? (
-            <TouchableOpacity
-              style={[styles.startButton, styles.fullWidth]}
-              disabled
-              activeOpacity={0.8}
-            >
-              <LinearGradient
-                colors={isDarkMode ? ['#475569', '#334155'] : ['#93C5FD', '#60A5FA']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.startButtonGradient}
-              >
-                <View style={styles.shimmerContainer}>
-                  <Text style={styles.startButtonText}>{t('home.startingPractice')}</Text>
-                  <Animated.View style={[styles.shimmerOverlay, shimmerStyle]}>
-                    <LinearGradient
-                      colors={['transparent', 'rgba(255,255,255,0.3)', 'transparent']}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
-                      style={styles.shimmerGradient}
-                    />
-                  </Animated.View>
-                </View>
-              </LinearGradient>
-            </TouchableOpacity>
-          ) : (
-            <Button
-              title={t('home.startPractice')}
-              onPress={handleStartPractice}
-              fullWidth
-            />
-          )}
+          <Button
+            title={isStartingPractice ? t('home.startingPractice') : t('home.startPractice')}
+            onPress={handleStartPractice}
+            disabled={isStartingPractice}
+            fullWidth
+          />
         </View>
-        
-        {/* Hidden image for preloading */}
-        {isLoadingImage && selectedAmbiance?.imageFile && (
+
+        {/* Persistent hidden image - keeps image mounted and cached for instant practice screen display */}
+        {selectedAmbiance?.imageFile && (
           <Image
             source={selectedAmbiance.imageFile}
-            style={styles.hiddenImage}
-            onLoad={handleImageLoad}
-            onError={handleImageError}
+            style={styles.persistentHiddenImage}
             resizeMode="cover"
           />
         )}
@@ -321,7 +261,7 @@ export default function HomeScreen() {
               onPress={(e) => e.stopPropagation()}
               style={[
                 styles.modalContent,
-                { 
+                {
                   backgroundColor: isDarkMode ? '#1F2937' : '#FFFFFF',
                 },
               ]}
@@ -329,7 +269,7 @@ export default function HomeScreen() {
               <Text style={[styles.modalTitle, { color: isDarkMode ? '#FFFFFF' : '#1F2937' }]}>
                 {t('home.durationModal.title')}
               </Text>
-              
+
               {/* Duration Options */}
               <View style={styles.durationOptions}>
                 {[1, 3, 5, 10, 15, 20].map((duration) => (
@@ -586,6 +526,15 @@ const styles = StyleSheet.create({
   quickAccessText: {
     fontSize: 15,
     fontWeight: '600',
+  },
+  persistentHiddenImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%', // Full width to force full decode
+    height: '100%', // Full height to force full decode
+    opacity: 0.01, // Almost invisible but technically "visible" to force render
+    zIndex: -999,
   },
   bottomSpacing: {
     height: 20,

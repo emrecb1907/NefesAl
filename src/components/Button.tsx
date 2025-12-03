@@ -52,7 +52,11 @@ export const Button: React.FC<ButtonProps> = ({
     <TouchableOpacity
       onPress={onPress}
       disabled={disabled || loading}
-      style={[styles.button, fullWidth && styles.fullWidth]}
+      style={[
+        styles.button,
+        fullWidth && styles.fullWidth,
+        (disabled || loading) && { opacity: 0.6 }
+      ]}
       activeOpacity={0.8}
     >
       <LinearGradient

@@ -42,7 +42,7 @@ export default function RootLayout() {
   // TEST MODE: Always show onboarding on app start (unless already completed)
   useEffect(() => {
     if (!isNavigatorReady) return;
-    
+
     // Temporarily modified for testing - show onboarding on app start, but allow navigation after completion
     if (onboardingCompleted && segments[0] === 'onboarding') {
       // If onboarding is completed but user is still on onboarding screen, go to tabs
@@ -75,7 +75,10 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" />
           <Stack.Screen
             name="practice"
-            options={{ presentation: 'fullScreenModal' }}
+            options={{
+              animation: 'none', // No animation for instant transition
+              headerShown: false,
+            }}
           />
           <Stack.Screen
             name="settings"

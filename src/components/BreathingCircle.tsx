@@ -24,39 +24,52 @@ export const BreathingCircle: React.FC<BreathingCircleProps> = ({
 }) => {
   const theme = useTheme();
   const { t } = useTranslation();
-  const scale = useSharedValue(1);
-  const opacity = useSharedValue(0.3);
+  const expansion = useSharedValue(0); // 0 to 1 expansion factor
+  const opacity = useSharedValue(0);
 
   useEffect(() => {
     if (!isActive || phase === 'rest') {
-      scale.value = 1;
-      opacity.value = 0.3;
+      expansion.value = withTiming(0, { duration: 1000 });
+      opacity.value = 0;
       return;
     }
 
     if (phase === 'inhale') {
-      scale.value = withTiming(1.3, {
+      expansion.value = withTiming(1, {
         duration: 4000,
         easing: Easing.out(Easing.ease),
       });
-      opacity.value = withTiming(0.5, { duration: 4000 });
+      opacity.value = withTiming(0.9, { duration: 4000 });
     } else if (phase === 'exhale') {
-      scale.value = withTiming(1, {
+      expansion.value = withTiming(0, {
         duration: 4000,
         easing: Easing.in(Easing.ease),
       });
-      opacity.value = withTiming(0.3, { duration: 4000 });
+      opacity.value = withTiming(0.6, { duration: 4000 });
     } else {
       // Hold phases - maintain current state
-      scale.value = withTiming(scale.value, { duration: 100 });
+      expansion.value = withTiming(expansion.value, { duration: 100 });
       opacity.value = withTiming(opacity.value, { duration: 100 });
     }
   }, [phase, isActive]);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-    opacity: opacity.value,
-  }));
+  const animatedStyle = useAnimatedStyle(() => {
+    // Math to keep inner hole constant while expanding outwards:
+    // Width = CIRCLE_SIZE + 2 * Expansion
+    // BorderWidth = Expansion
+    // Hole = Width - 2 * BorderWidth = CIRCLE_SIZE (Constant!)
+
+    const maxExpansion = 80; // Pixels to expand outwards
+    const currentExpansion = expansion.value * maxExpansion;
+
+    return {
+      width: CIRCLE_SIZE + (currentExpansion * 2),
+      height: CIRCLE_SIZE + (currentExpansion * 2),
+      borderRadius: (CIRCLE_SIZE + (currentExpansion * 2)) / 2,
+      borderWidth: currentExpansion,
+      opacity: opacity.value,
+    };
+  });
 
   const getPhaseText = () => {
     switch (phase) {
@@ -82,10 +95,9 @@ export const BreathingCircle: React.FC<BreathingCircleProps> = ({
         style={[
           styles.outerCircle,
           {
-            backgroundColor: theme.colors.primary + '20',
-            width: CIRCLE_SIZE,
-            height: CIRCLE_SIZE,
-            borderRadius: CIRCLE_SIZE / 2,
+            backgroundColor: 'transparent',
+            borderColor: theme.colors.primary,
+            // Width/Height/BorderRadius/BorderWidth are handled by animatedStyle
           },
           animatedStyle,
         ]}
@@ -95,15 +107,17 @@ export const BreathingCircle: React.FC<BreathingCircleProps> = ({
         style={[
           styles.mainCircle,
           {
-            backgroundColor: '#ffffff',
+            backgroundColor: 'transparent',
             width: CIRCLE_SIZE,
             height: CIRCLE_SIZE,
             borderRadius: CIRCLE_SIZE / 2,
-            shadowColor: theme.colors.primary,
+            shadowColor: 'transparent',
+            borderWidth: 0.2,
+            borderColor: '#ffffff',
           },
         ]}
       >
-        <Text style={[styles.phaseText, { color: theme.colors.text }]}>
+        <Text style={[styles.phaseText, { color: '#FFFFFF' }]}>
           {getPhaseText()}
         </Text>
       </View>
