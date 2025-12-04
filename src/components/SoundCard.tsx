@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useTheme } from '../styles/colors';
 import { Card } from './Card';
 import Svg, { Circle, Path, Polygon, Rect } from 'react-native-svg';
@@ -8,6 +8,7 @@ interface SoundCardProps {
   title: string;
   description: string;
   icon: 'rain' | 'forest' | 'ocean' | 'cosmic' | 'zen' | 'fire';
+  miniImageFile?: number; // require() returns a number (asset ID)
   isPlaying?: boolean;
   isLocked?: boolean;
   onPress: () => void;
@@ -145,6 +146,7 @@ export const SoundCard: React.FC<SoundCardProps> = ({
   title,
   description,
   icon,
+  miniImageFile,
   isPlaying = false,
   isLocked = false,
   onPress,
@@ -165,9 +167,19 @@ export const SoundCard: React.FC<SoundCardProps> = ({
         padding={16}
       >
         <View style={styles.content}>
-          {/* Icon */}
+          {/* Icon or Mini Image */}
           <View style={styles.iconContainer}>
-            <SoundIcon type={icon} />
+            {miniImageFile ? (
+              <View style={styles.miniImageContainer}>
+                <Image
+                  source={miniImageFile}
+                  style={styles.miniImage}
+                  resizeMode="cover"
+                />
+              </View>
+            ) : (
+              <SoundIcon type={icon} />
+            )}
           </View>
 
           {/* Text Content */}
@@ -244,6 +256,22 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     marginRight: 16,
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  miniImageContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    overflow: 'hidden',
+    backgroundColor: '#ffffff',
+    transform: [{ scale: 1.1 }],
+  },
+  miniImage: {
+    width: '100%',
+    height: '100%',
   },
   textContainer: {
     flex: 1,

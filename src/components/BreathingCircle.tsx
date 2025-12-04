@@ -10,17 +10,21 @@ import Animated, {
 import { useTheme } from '../styles/colors';
 import { useTranslation } from '../hooks/useTranslation';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CIRCLE_SIZE = SCREEN_WIDTH * 0.7;
+// Maximum circle size should not exceed 90% of screen width or height (whichever is smaller)
+const MAX_CIRCLE_SIZE = Math.min(SCREEN_WIDTH, SCREEN_HEIGHT) * 0.9;
 
 interface BreathingCircleProps {
   phase: 'inhale' | 'hold' | 'exhale' | 'holdAfterExhale' | 'rest';
   isActive: boolean;
+  phaseDuration?: number; // Duration in seconds for the current phase
 }
 
 export const BreathingCircle: React.FC<BreathingCircleProps> = ({
   phase,
   isActive,
+  phaseDuration = 4, // Default to 4 seconds if not provided
 }) => {
   const theme = useTheme();
   const { t } = useTranslation();
@@ -34,24 +38,27 @@ export const BreathingCircle: React.FC<BreathingCircleProps> = ({
       return;
     }
 
+    // Convert seconds to milliseconds for animation duration
+    const durationMs = phaseDuration * 1000;
+
     if (phase === 'inhale') {
       expansion.value = withTiming(1, {
-        duration: 4000,
+        duration: durationMs,
         easing: Easing.out(Easing.ease),
       });
-      opacity.value = withTiming(0.9, { duration: 4000 });
+      opacity.value = withTiming(0.9, { duration: durationMs });
     } else if (phase === 'exhale') {
       expansion.value = withTiming(0, {
-        duration: 4000,
+        duration: durationMs,
         easing: Easing.in(Easing.ease),
       });
-      opacity.value = withTiming(0.6, { duration: 4000 });
+      opacity.value = withTiming(0.6, { duration: durationMs });
     } else {
       // Hold phases - maintain current state
       expansion.value = withTiming(expansion.value, { duration: 100 });
       opacity.value = withTiming(opacity.value, { duration: 100 });
     }
-  }, [phase, isActive]);
+  }, [phase, isActive, phaseDuration]);
 
   const animatedStyle = useAnimatedStyle(() => {
     // Math to keep inner hole constant while expanding outwards:
@@ -59,14 +66,21 @@ export const BreathingCircle: React.FC<BreathingCircleProps> = ({
     // BorderWidth = Expansion
     // Hole = Width - 2 * BorderWidth = CIRCLE_SIZE (Constant!)
 
-    const maxExpansion = 80; // Pixels to expand outwards
+    // Calculate max expansion based on available space
+    // Maximum total size should not exceed MAX_CIRCLE_SIZE
+    const maxTotalSize = MAX_CIRCLE_SIZE;
+    const maxExpansion = Math.max(0, (maxTotalSize - CIRCLE_SIZE) / 2);
     const currentExpansion = expansion.value * maxExpansion;
 
+    // Ensure we don't exceed maximum size
+    const totalSize = Math.min(CIRCLE_SIZE + (currentExpansion * 2), maxTotalSize);
+    const actualExpansion = (totalSize - CIRCLE_SIZE) / 2;
+
     return {
-      width: CIRCLE_SIZE + (currentExpansion * 2),
-      height: CIRCLE_SIZE + (currentExpansion * 2),
-      borderRadius: (CIRCLE_SIZE + (currentExpansion * 2)) / 2,
-      borderWidth: currentExpansion,
+      width: totalSize,
+      height: totalSize,
+      borderRadius: totalSize / 2,
+      borderWidth: actualExpansion,
       opacity: opacity.value,
     };
   });
@@ -112,7 +126,7 @@ export const BreathingCircle: React.FC<BreathingCircleProps> = ({
             height: CIRCLE_SIZE,
             borderRadius: CIRCLE_SIZE / 2,
             shadowColor: 'transparent',
-            borderWidth: 0.2,
+            borderWidth: 0.8,
             borderColor: '#ffffff',
           },
         ]}

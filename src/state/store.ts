@@ -106,8 +106,8 @@ export const useAppStore = create<AppState>()(
       profileImageUri: null,
       setProfileImageUri: (uri) => set({ profileImageUri: uri }),
       
-      // Practice Duration (default 5 minutes)
-      practiceDuration: 5,
+      // Practice Duration (default 1 minute)
+      practiceDuration: 1,
       setPracticeDuration: (duration) => set({ practiceDuration: duration }),
     }),
     {

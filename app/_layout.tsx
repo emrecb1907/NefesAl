@@ -4,12 +4,14 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StyleSheet } from 'react-native';
+import { Asset } from 'expo-asset';
 import 'react-native-reanimated';
 import '../global.css';
 
 import { requestNotificationPermissions } from '../src/utils/notifications';
 import { useIsDarkMode } from '../src/styles/colors';
 import { useAppStore } from '../src/state/store';
+import { ambiances } from '../src/constants/ambiances';
 
 export default function RootLayout() {
   const isDarkMode = useIsDarkMode();
@@ -29,6 +31,23 @@ export default function RootLayout() {
     requestNotificationPermissions().catch((error) => {
       console.error('Failed to request notification permissions:', error);
     });
+  }, []);
+
+  // Preload mini images for sounds screen on app start
+  useEffect(() => {
+    const preloadMiniImages = async () => {
+      const imagePromises = ambiances
+        .filter(ambiance => ambiance.miniImageFile)
+        .map(ambiance => Asset.loadAsync(ambiance.miniImageFile!));
+
+      try {
+        await Promise.all(imagePromises);
+      } catch (error) {
+        // Silently fail, images will load when needed
+      }
+    };
+
+    preloadMiniImages();
   }, []);
 
   // Mark navigator as ready when segments are available
@@ -76,8 +95,22 @@ export default function RootLayout() {
           <Stack.Screen
             name="practice"
             options={{
-              animation: 'none', // No animation for instant transition
+              animation: 'fade', // Fade in animation
               headerShown: false,
+              transitionSpec: {
+                open: {
+                  animation: 'timing',
+                  config: {
+                    duration: 200, // Faster fade (default is usually 300-350ms)
+                  },
+                },
+                close: {
+                  animation: 'timing',
+                  config: {
+                    duration: 200,
+                  },
+                },
+              },
             }}
           />
           <Stack.Screen

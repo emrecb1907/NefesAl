@@ -86,6 +86,7 @@ export default function PracticeScreen() {
   const audioPlayerRef = useRef<AudioPlayer | null>(null);
   const audioPlayer2Ref = useRef<AudioPlayer | null>(null); // Second player for seamless looping
   const activePlayerRef = useRef<'player1' | 'player2'>('player1');
+  const currentAmbianceRef = useRef<string | null>(null); // Track which ambiance the players are for
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -159,8 +160,29 @@ export default function PracticeScreen() {
   useEffect(() => {
     const ambiance = ambiances.find(a => a.id === defaultAmbiance);
 
-    if (ambiance?.soundFile && !audioPlayerRef.current && !audioPlayer2Ref.current) {
-      // Preload players in background
+    // If ambiance changed or players don't exist, recreate them
+    if (ambiance?.soundFile && (currentAmbianceRef.current !== defaultAmbiance || !audioPlayerRef.current || !audioPlayer2Ref.current)) {
+      // Clean up existing players if they exist
+      if (audioPlayerRef.current) {
+        const subscription1 = (audioPlayerRef.current as any)?._statusSubscription;
+        if (subscription1 && typeof subscription1.remove === 'function') {
+          subscription1.remove();
+        }
+        audioPlayerRef.current.pause();
+        audioPlayerRef.current.remove();
+        audioPlayerRef.current = null;
+      }
+      if (audioPlayer2Ref.current) {
+        const subscription2 = (audioPlayer2Ref.current as any)?._statusSubscription;
+        if (subscription2 && typeof subscription2.remove === 'function') {
+          subscription2.remove();
+        }
+        audioPlayer2Ref.current.pause();
+        audioPlayer2Ref.current.remove();
+        audioPlayer2Ref.current = null;
+      }
+
+      // Preload new players for the current ambiance
       const player1 = createAudioPlayer(ambiance.soundFile);
       player1.loop = false;
       player1.volume = 0;
@@ -173,6 +195,7 @@ export default function PracticeScreen() {
       player2.muted = true;
       audioPlayer2Ref.current = player2;
       activePlayerRef.current = 'player1';
+      currentAmbianceRef.current = defaultAmbiance;
 
       // Preload by seeking to 0 (this triggers loading)
       player1.seekTo(0).catch(() => { });
@@ -339,7 +362,7 @@ export default function PracticeScreen() {
         let player2 = audioPlayer2Ref.current;
 
         // If players don't exist or are for different ambiance, create new ones
-        if (!player1 || !player2) {
+        if (!player1 || !player2 || currentAmbianceRef.current !== defaultAmbiance) {
           // Clean up existing players if any
           if (audioPlayerRef.current) {
             const subscription1 = (audioPlayerRef.current as any)?._statusSubscription;
@@ -369,6 +392,7 @@ export default function PracticeScreen() {
           player2.volume = 0;
           audioPlayer2Ref.current = player2;
           activePlayerRef.current = 'player1';
+          currentAmbianceRef.current = defaultAmbiance;
         } else {
           // Use existing preloaded players
           // Remove existing subscriptions if any
@@ -513,12 +537,12 @@ export default function PracticeScreen() {
       )}
       {/* Fallback background with ambiance color - shows while image loads */}
       <View style={[styles.containerBackground, { backgroundColor: selectedAmbiance?.color || theme.colors.background, zIndex: -1 }]} />
-      {/* Overlay - Always visible but changes opacity based on active state */}
+      {/* Overlay - Always visible with consistent opacity */}
       {selectedAmbiance?.imageFile && (
         <View
           style={[
             styles.overlay,
-            { backgroundColor: isActive ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.5)' }
+            { backgroundColor: 'rgba(0,0,0,0.3)' }
           ]}
         />
       )}
@@ -557,7 +581,11 @@ export default function PracticeScreen() {
 
       {/* Breathing Circle - Absolute positioned at center of entire screen */}
       <View style={styles.circleContainer}>
-        <BreathingCircle phase={currentPhase} isActive={isActive} />
+        <BreathingCircle 
+          phase={currentPhase} 
+          isActive={isActive} 
+          phaseDuration={getPhaseDuration(currentPhase)}
+        />
       </View>
 
       {/* Content - Safe area içinde */}
@@ -704,6 +732,7 @@ const styles = StyleSheet.create({
     zIndex: 2,
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
   },
   timerButtonWrapper: {
     position: 'absolute',

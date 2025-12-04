@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Asset } from 'expo-asset';
 import { useTheme } from '../src/styles/colors';
 import { useAppStore } from '../src/state/store';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,6 +20,29 @@ export default function SoundsScreen() {
 
   const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
   const [player, setPlayer] = useState<AudioPlayer | null>(null);
+
+  // Preload mini images immediately when component mounts (should already be cached from home screen)
+  useEffect(() => {
+    const preloadMiniImages = async () => {
+      // Preload all mini images immediately
+      const imagePromises = ambiances
+        .filter(ambiance => ambiance.miniImageFile)
+        .map(ambiance => {
+          // Force immediate load
+          return Asset.loadAsync(ambiance.miniImageFile!)
+            .catch((error) => {
+              console.warn(`Failed to preload mini image for ${ambiance.id}:`, error);
+            });
+        });
+
+      // Don't wait, just start loading
+      Promise.all(imagePromises).catch(() => {
+        // Ignore errors, images will load when rendered
+      });
+    };
+
+    preloadMiniImages();
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -112,6 +136,7 @@ export default function SoundsScreen() {
                 title={ambiance.name}
                 description={ambiance.description}
                 icon={ambiance.icon}
+                miniImageFile={ambiance.miniImageFile}
                 isPlaying={isPlaying}
                 isLocked={isLocked}
                 onPress={() => handleSoundPress(ambiance.id, isLocked)}

@@ -83,6 +83,23 @@ export default function HomeScreen() {
     }
   }, [defaultAmbiance]);
 
+  // Preload mini images for sounds screen
+  useEffect(() => {
+    const preloadMiniImages = async () => {
+      const imagePromises = ambiances
+        .filter(ambiance => ambiance.miniImageFile)
+        .map(ambiance => Asset.loadAsync(ambiance.miniImageFile!));
+
+      try {
+        await Promise.all(imagePromises);
+      } catch (error) {
+        console.warn('Failed to preload some mini images:', error);
+      }
+    };
+
+    preloadMiniImages();
+  }, []);
+
   const handleStartPractice = () => {
     // Set loading state for visual feedback
     setIsStartingPractice(true);
@@ -175,7 +192,12 @@ export default function HomeScreen() {
                 <Text style={[styles.todayPracticeLabel, { color: theme.colors.textSecondary }]}>{t('home.todaysPractice')}</Text>
                 <Text style={[styles.todayPracticeTitle, { color: theme.colors.text }]}>{selectedPatternName}</Text>
                 <Text style={[styles.todayPracticeDetails, { color: theme.colors.textSecondary }]}>
-                  {selectedPattern.inhale}-{selectedPattern.hold}-{selectedPattern.exhale}-{selectedPattern.holdAfterExhale} {t('home.rhythm')} · {practiceDuration} {t('home.minutes')}
+                  {[
+                    selectedPattern.inhale,
+                    selectedPattern.hold > 0 ? selectedPattern.hold : null,
+                    selectedPattern.exhale,
+                    selectedPattern.holdAfterExhale > 0 ? selectedPattern.holdAfterExhale : null,
+                  ].filter((val) => val !== null).join('-')} {t('home.rhythm')} · {practiceDuration} {t('home.minutes')}
                 </Text>
                 {selectedSoundName ? (
                   <Text style={[styles.todayPracticeSound, { color: theme.colors.textSecondary }]}>
@@ -184,9 +206,19 @@ export default function HomeScreen() {
                 ) : null}
               </View>
               <View style={styles.circlePlaceholder}>
-                <Svg width={80} height={80} viewBox="0 0 80 80">
-                  <Circle cx="40" cy="40" r="38" stroke={circleStrokeColor} strokeWidth="2" fill="none" />
-                </Svg>
+                {selectedAmbiance?.miniImageFile ? (
+                  <View style={[styles.miniImageCircleContainer, { borderColor: circleStrokeColor, borderWidth: 2 }]}>
+                    <Image
+                      source={selectedAmbiance.miniImageFile}
+                      style={styles.miniImageCircle}
+                      resizeMode="cover"
+                    />
+                  </View>
+                ) : (
+                  <Svg width={80} height={80} viewBox="0 0 80 80">
+                    <Circle cx="40" cy="40" r="38" stroke={circleStrokeColor} strokeWidth="2" fill="none" />
+                  </Svg>
+                )}
               </View>
             </View>
           </LinearGradient>
@@ -448,6 +480,18 @@ const styles = StyleSheet.create({
     height: 80,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  miniImageCircleContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    overflow: 'hidden',
+    backgroundColor: '#ffffff',
+    transform: [{ scale: 1.2 }],
+  },
+  miniImageCircle: {
+    width: '100%',
+    height: '100%',
   },
   startButtonContainer: {
     marginHorizontal: 20,

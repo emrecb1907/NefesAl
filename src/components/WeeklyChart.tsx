@@ -8,7 +8,9 @@ import Svg, { Rect, LinearGradient, Defs, Stop } from 'react-native-svg';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CHART_WIDTH = SCREEN_WIDTH - 80;
 const CHART_HEIGHT = 200;
-const BAR_WIDTH = (CHART_WIDTH - 48) / 7; // 7 bars with spacing
+const BAR_SPACING = 8; // Increased spacing between bars
+const TOTAL_BAR_WIDTH = CHART_WIDTH - 48; // Leave 24px padding on each side
+const BAR_WIDTH = (TOTAL_BAR_WIDTH - (BAR_SPACING * 6)) / 7; // 7 bars with 6 spaces between
 const MAX_BAR_HEIGHT = CHART_HEIGHT - 60; // Leave space for labels
 
 interface WeeklyChartProps {
@@ -48,7 +50,7 @@ export const WeeklyChart: React.FC<WeeklyChartProps> = ({ data }) => {
             </Defs>
             {data.map((value, index) => {
               const barHeight = getBarHeight(value);
-              const x = index * (BAR_WIDTH + 6) + 24;
+              const x = index * (BAR_WIDTH + BAR_SPACING) + 24;
               const y = CHART_HEIGHT - 40 - barHeight;
 
               return (
@@ -67,17 +69,25 @@ export const WeeklyChart: React.FC<WeeklyChartProps> = ({ data }) => {
         </View>
         {/* Day labels positioned absolutely */}
         <View style={styles.dayLabels}>
-          {days.map((day, index) => (
-            <Text
-              key={index}
-              style={[
-                styles.dayLabel,
-                { color: theme.colors.textSecondary },
-              ]}
-            >
-              {day}
-            </Text>
-          ))}
+          {days.map((day, index) => {
+            // Calculate bar center position to align label
+            const barX = index * (BAR_WIDTH + BAR_SPACING) + 24;
+            const barCenterX = barX + BAR_WIDTH / 2;
+            return (
+              <Text
+                key={index}
+                style={[
+                  styles.dayLabel,
+                  { 
+                    color: theme.colors.textSecondary,
+                    left: barCenterX - 8, // Center the text (assuming ~16px text width)
+                  },
+                ]}
+              >
+                {day}
+              </Text>
+            );
+          })}
         </View>
       </View>
     </Card>
@@ -110,15 +120,15 @@ const styles = StyleSheet.create({
   dayLabels: {
     position: 'absolute',
     bottom: 0,
-    left: 24,
-    right: 24,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    left: 0,
+    right: 0,
+    height: 40,
   },
   dayLabel: {
     fontSize: 12,
     fontWeight: '500',
-    width: BAR_WIDTH,
+    position: 'absolute',
     textAlign: 'center',
+    width: 16,
   },
 });
