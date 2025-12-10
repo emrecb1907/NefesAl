@@ -1,10 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
-  withRepeat,
   Easing,
 } from 'react-native-reanimated';
 import { useTheme } from '../styles/colors';
@@ -14,6 +13,176 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CIRCLE_SIZE = SCREEN_WIDTH * 0.7;
 // Maximum circle size should not exceed 90% of screen width or height (whichever is smaller)
 const MAX_CIRCLE_SIZE = Math.min(SCREEN_WIDTH, SCREEN_HEIGHT) * 0.9;
+
+interface RippleCircleProps {
+  id: number;
+  phaseDuration: number;
+  maxScale: number;
+  onComplete: (id: number) => void;
+  borderColor: string;
+  outerCircleScale: Animated.SharedValue<number>;
+  reverse?: boolean; // true ise dışarıdan içeriye doğru
+}
+
+const RippleCircle: React.FC<RippleCircleProps> = ({
+  id,
+  phaseDuration,
+  maxScale,
+  onComplete,
+  borderColor,
+  outerCircleScale,
+  reverse = false,
+}) => {
+  const scale = useSharedValue(reverse ? maxScale * 1.2 : 1);
+  const opacity = useSharedValue(0.6);
+  const checkIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (reverse) {
+      // Nefes verme: en dıştaki mor çemberden içeriye doğru küçül
+      // Başlangıç: mor çemberin o anki konumundan (mevcut gerçek zamanlı boyutu)
+      // Exhale fazında mor çember maxScale'den başlıyor ve küçülüyor
+      // Ripple çemberler mor çemberin mevcut boyutundan başlamalı
+      const currentOuterScale = outerCircleScale.value;
+      // Mor çemberin mevcut boyutunu kullan, ama maxScale'i kesinlikle geçmemeli
+      // Güvenli bir şekilde sınırla - kocaman çember sorununu önle
+      const startScale = Math.min(
+        Math.max(currentOuterScale, 1), // En az 1, geçersiz değerleri önle
+        maxScale // En fazla maxScale, kocaman çemberleri önle
+      );
+      
+      // Scale değerini direkt set et - animasyon başlamadan önce
+      scale.value = startScale; // Mor çemberin o anki konumundan başla
+      opacity.value = 0.6;
+      
+      // Ana çemberden 2 kat hızlı olmalı
+      // Ana çemberin mesafesi: maxScale'den 1'e kadar (mesafe = maxScale - 1)
+      // Ana çemberin süresi: phaseDuration * 1000 ms
+      // Ripple çemberin mesafesi: startScale'den 1'e kadar (mesafe = startScale - 1)
+      // Hız = mesafe / süre
+      // Ripple çember 2 kat hızlı olmalı: hız_ripple = 2 * hız_ana
+      // süre_ripple = mesafe_ripple / (2 * hız_ana) = mesafe_ripple / (2 * mesafe_ana / süre_ana)
+      // süre_ripple = (mesafe_ripple * süre_ana) / (2 * mesafe_ana)
+      const anaMesafe = maxScale - 1;
+      const rippleMesafe = startScale - 1;
+      const anaSure = phaseDuration * 1000;
+      // Eğer mesafe 0 ise veya çok küçükse, minimum süre kullan
+      const fasterDuration = anaMesafe > 0.01 
+        ? (rippleMesafe * anaSure) / (2 * anaMesafe)
+        : anaSure / 2;
+      
+      // Animasyonu başlat - daha agresif easing ile
+      scale.value = withTiming(1, {
+        duration: Math.max(fasterDuration, 100), // Minimum 100ms
+        easing: Easing.in(Easing.quad), // Daha agresif easing
+      });
+      opacity.value = withTiming(0, {
+        duration: fasterDuration,
+        easing: Easing.in(Easing.ease),
+      });
+
+      // Her 50ms'de bir iç çemberle çarpışmayı kontrol et
+      const checkCollision = () => {
+        const currentScale = scale.value;
+        
+        // Ripple çember iç çembere (beyaz çember) çarptı mı?
+        if (currentScale <= 1.02) { // İç çembere yaklaştığında kaybol
+          opacity.value = withTiming(0, { duration: 100 });
+          setTimeout(() => {
+            onComplete(id);
+          }, 100);
+          if (checkIntervalRef.current) {
+            clearInterval(checkIntervalRef.current);
+            checkIntervalRef.current = null;
+          }
+        }
+      };
+
+      checkIntervalRef.current = setInterval(checkCollision, 50);
+
+      // Fallback: animasyon süresi dolduğunda kaldır (hızlı süreye göre)
+      const timer = setTimeout(() => {
+        if (checkIntervalRef.current) {
+          clearInterval(checkIntervalRef.current);
+        }
+        onComplete(id);
+      }, fasterDuration);
+
+      return () => {
+        clearTimeout(timer);
+        if (checkIntervalRef.current) {
+          clearInterval(checkIntervalRef.current);
+        }
+      };
+    } else {
+      // Nefes alma: iç çemberden dışarıya doğru genişle
+      scale.value = withTiming(maxScale * 1.2, {
+        duration: phaseDuration * 1000,
+        easing: Easing.out(Easing.ease),
+      });
+      opacity.value = withTiming(0, {
+        duration: phaseDuration * 1000,
+        easing: Easing.out(Easing.ease),
+      });
+
+      // Her 50ms'de bir dış çemberle çarpışmayı kontrol et
+      const checkCollision = () => {
+        const currentScale = scale.value;
+        const outerScale = outerCircleScale.value;
+        
+        // Ripple çember dış çembere (mor çember) çarptı mı?
+        if (currentScale >= outerScale * 0.98) {
+          opacity.value = withTiming(0, { duration: 100 });
+          setTimeout(() => {
+            onComplete(id);
+          }, 100);
+          if (checkIntervalRef.current) {
+            clearInterval(checkIntervalRef.current);
+            checkIntervalRef.current = null;
+          }
+        }
+      };
+
+      checkIntervalRef.current = setInterval(checkCollision, 50);
+
+      // Fallback: animasyon süresi dolduğunda kaldır
+      const timer = setTimeout(() => {
+        if (checkIntervalRef.current) {
+          clearInterval(checkIntervalRef.current);
+        }
+        onComplete(id);
+      }, phaseDuration * 1000);
+
+      return () => {
+        clearTimeout(timer);
+        if (checkIntervalRef.current) {
+          clearInterval(checkIntervalRef.current);
+        }
+      };
+    }
+  }, [reverse]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+  }));
+
+  return (
+    <Animated.View
+      style={[
+        styles.rippleCircle,
+        {
+          width: CIRCLE_SIZE,
+          height: CIRCLE_SIZE,
+          borderRadius: CIRCLE_SIZE / 2,
+          borderColor: borderColor,
+          borderWidth: 2,
+        },
+        animatedStyle,
+      ]}
+    />
+  );
+};
 
 interface BreathingCircleProps {
   phase: 'inhale' | 'hold' | 'exhale' | 'holdAfterExhale' | 'rest';
@@ -28,62 +197,92 @@ export const BreathingCircle: React.FC<BreathingCircleProps> = ({
 }) => {
   const theme = useTheme();
   const { t } = useTranslation();
-  const expansion = useSharedValue(0); // 0 to 1 expansion factor
-  const opacity = useSharedValue(0);
+  // Mor çember için scale animasyonu
+  const outerCircleScale = useSharedValue(1);
+  const outerCircleOpacity = useSharedValue(0);
+  // Ripple çemberler için state
+  const [ripples, setRipples] = useState<number[]>([]);
+  const rippleIdCounter = useRef(0);
+  const rippleIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Ripple çemberler - nefes alma ve verme sırasında
+  useEffect(() => {
+    if ((phase === 'inhale' || phase === 'exhale') && isActive) {
+      // İlk çember 1 saniye sonra
+      const firstRippleTimer = setTimeout(() => {
+        const id = rippleIdCounter.current++;
+        setRipples((prev) => [...prev, id]);
+      }, 1000);
+
+      // Sonraki çemberler her 0.8 saniyede bir
+      rippleIntervalRef.current = setInterval(() => {
+        const id = rippleIdCounter.current++;
+        setRipples((prev) => [...prev, id]);
+      }, 800);
+
+      return () => {
+        clearTimeout(firstRippleTimer);
+        if (rippleIntervalRef.current) {
+          clearInterval(rippleIntervalRef.current);
+        }
+      };
+    } else {
+      // Nefes alma/verme bitince ripple'ları durdur
+      if (rippleIntervalRef.current) {
+        clearInterval(rippleIntervalRef.current);
+        rippleIntervalRef.current = null;
+      }
+      // Mevcut ripple'ları temizle
+      setRipples([]);
+    }
+  }, [phase, isActive]);
+
+  const handleRippleComplete = (id: number) => {
+    setRipples((prev) => prev.filter((r) => r !== id));
+  };
 
   useEffect(() => {
     if (!isActive || phase === 'rest') {
-      expansion.value = withTiming(0, { duration: 1000 });
-      opacity.value = 0;
+      outerCircleScale.value = withTiming(1, { duration: 500 });
+      outerCircleOpacity.value = withTiming(0, { duration: 500 });
       return;
     }
 
-    // Convert seconds to milliseconds for animation duration
     const durationMs = phaseDuration * 1000;
+    const maxScale = MAX_CIRCLE_SIZE / CIRCLE_SIZE;
 
     if (phase === 'inhale') {
-      expansion.value = withTiming(1, {
+      // Nefes alma: mor çember beyaz çemberden dışarıya genişle
+      outerCircleScale.value = 1; // Başlangıç: beyaz çember boyutu
+      outerCircleOpacity.value = 1; // Görünür
+      outerCircleScale.value = withTiming(maxScale, {
         duration: durationMs,
         easing: Easing.out(Easing.ease),
       });
-      opacity.value = withTiming(0.9, { duration: durationMs });
+    } else if (phase === 'hold') {
+      // Hold fazında: mor çember büyüdüğü noktada kalsın
+      outerCircleScale.value = maxScale; // Büyüdüğü boyutta kal
+      outerCircleOpacity.value = 1; // Görünür kal
     } else if (phase === 'exhale') {
-      expansion.value = withTiming(0, {
+      // Nefes verme: mor çember tekrar küçülsün (ama kaybolmasın)
+      outerCircleScale.value = maxScale; // Başlangıç: büyük boyut
+      outerCircleOpacity.value = 1; // Görünür kal
+      outerCircleScale.value = withTiming(1, {
         duration: durationMs,
         easing: Easing.in(Easing.ease),
       });
-      opacity.value = withTiming(0.6, { duration: durationMs });
+      // Opacity animasyonu kaldırıldı - çember kaybolmayacak
     } else {
-      // Hold phases - maintain current state
-      expansion.value = withTiming(expansion.value, { duration: 100 });
-      opacity.value = withTiming(opacity.value, { duration: 100 });
+      // Diğer fazlarda kaybol
+      outerCircleOpacity.value = withTiming(0, { duration: 300 });
+      outerCircleScale.value = withTiming(1, { duration: 300 });
     }
   }, [phase, isActive, phaseDuration]);
 
-  const animatedStyle = useAnimatedStyle(() => {
-    // Math to keep inner hole constant while expanding outwards:
-    // Width = CIRCLE_SIZE + 2 * Expansion
-    // BorderWidth = Expansion
-    // Hole = Width - 2 * BorderWidth = CIRCLE_SIZE (Constant!)
-
-    // Calculate max expansion based on available space
-    // Maximum total size should not exceed MAX_CIRCLE_SIZE
-    const maxTotalSize = MAX_CIRCLE_SIZE;
-    const maxExpansion = Math.max(0, (maxTotalSize - CIRCLE_SIZE) / 2);
-    const currentExpansion = expansion.value * maxExpansion;
-
-    // Ensure we don't exceed maximum size
-    const totalSize = Math.min(CIRCLE_SIZE + (currentExpansion * 2), maxTotalSize);
-    const actualExpansion = (totalSize - CIRCLE_SIZE) / 2;
-
-    return {
-      width: totalSize,
-      height: totalSize,
-      borderRadius: totalSize / 2,
-      borderWidth: actualExpansion,
-      opacity: opacity.value,
-    };
-  });
+  const outerCircleStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: outerCircleScale.value }],
+    opacity: outerCircleOpacity.value,
+  }));
 
   const getPhaseText = () => {
     switch (phase) {
@@ -104,19 +303,36 @@ export const BreathingCircle: React.FC<BreathingCircleProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Outer glow circle */}
+      {/* Ripple çemberler - nefes alma ve verme sırasında */}
+      {ripples.map((rippleId) => (
+        <RippleCircle
+          key={rippleId}
+          id={rippleId}
+          phaseDuration={phaseDuration}
+          maxScale={MAX_CIRCLE_SIZE / CIRCLE_SIZE}
+          onComplete={handleRippleComplete}
+          borderColor={theme.colors.primary}
+          outerCircleScale={outerCircleScale}
+          reverse={phase === 'exhale'}
+        />
+      ))}
+
+      {/* Mor çember - nefes alma sırasında genişler */}
       <Animated.View
         style={[
           styles.outerCircle,
           {
+            width: CIRCLE_SIZE,
+            height: CIRCLE_SIZE,
+            borderRadius: CIRCLE_SIZE / 2,
             backgroundColor: 'transparent',
             borderColor: theme.colors.primary,
-            // Width/Height/BorderRadius/BorderWidth are handled by animatedStyle
+            borderWidth: 2,
           },
-          animatedStyle,
+          outerCircleStyle,
         ]}
       />
-      {/* Main circle */}
+      {/* Beyaz çember */}
       <View
         style={[
           styles.mainCircle,
@@ -144,6 +360,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginVertical: 40,
+  },
+  rippleCircle: {
+    position: 'absolute',
+    backgroundColor: 'transparent',
   },
   outerCircle: {
     position: 'absolute',
